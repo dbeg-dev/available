@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dory · Daily Briefing</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e0f;
+  --surface: #161618;
+  --surface2: #1e1e21;
+  --border: #2a2a2e;
+  --text: #e8e4dc;
+  --muted: #666360;
+  --dimmed: #3a3835;
+  --gold: #c9a84c;
+  --gold-dim: #c9a84c22;
+  --amber: #e8963a;
+  --green: #4caf82;
+  --red: #e05c5c;
+  --blue: #5b9bd5;
+  --morning: #e8963a;
+  --evening: #5b9bd5;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 58px;
+  background: var(--surface);
+}
+.logo-mark {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-style: italic;
+  color: var(--gold);
+  letter-spacing: -0.3px;
+}
+.logo-sub {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-left: 10px;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.clock {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 300;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.next-brief {
+  font-size: 10px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px 10px;
+}
+.next-brief span {
+  color: var(--gold);
+}
+
+/* ── SCHEDULE STRIP ── */
+.schedule-strip {
+  position: relative;
+  z-index: 10;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+.sched-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sched-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sched-dot.morning { background: var(--morning); }
+.sched-dot.evening { background: var(--evening); }
+.sched-label { text-transform: uppercase; letter-spacing: 1.5px; }
+.sched-time { color: var(--text); font-weight: 500; }
+.trigger-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.trigger-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── MAIN ── */
+main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 780px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── MESSAGES ── */
+.messages {
+  flex: 1;
+  padding: 28px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+}
+
+.msg {
+  display: flex;
+  gap: 14px;
+  animation: fadeUp 0.3s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.msg-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.msg-avatar.agent { background: var(--gold-dim); border: 1px solid var(--gold); color: var(--gold); }
+.msg-avatar.user  { background: var(--dimmed); border: 1px solid var(--border); color: var(--muted); }
+
+.msg-body { flex: 1; min-width: 0; }
+
+.msg-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.msg-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.msg-name.agent { color: var(--gold); }
+.msg-time {
+  font-size: 10px;
+  color: var(--dimmed);
+}
+.msg-badge {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.msg-badge.morning { background: #e8963a18; border: 1px solid #e8963a44; color: var(--morning); }
+.msg-badge.evening { background: #5b9bd518; border: 1px solid #5b9bd544; color: var(--evening); }
+.msg-badge.scheduled { background: #4caf8218; border: 1px solid #4caf8244; color: var(--green); }
+
+.msg-content {
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text);
+  font-weight: 300;
+}
+.msg-content strong { font-weight: 500; color: #fff; }
+.msg-content em { color: var(--gold); font-style: normal; }
+
+/* briefing card */
+.brief-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 18px;
+  margin-top: 10px;
+}
+.brief-card-header {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brief-card-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.event-row:last-child { border-bottom: none; }
+.event-time {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 500;
+  min-width: 72px;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+  font-variant-numeric: tabular-nums;
+}
+.event-info { flex: 1; }
+.event-title { font-size: 12px; color: var(--text); font-weight: 400; }
+.event-loc { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.event-tag {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  align-self: flex-start;
+}
+
+.free-windows {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.free-title { font-size: 10px; color: var(--green); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+.free-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.free-chip {
+  font-size: 11px;
+  padding: 3px 9px;
+  background: #4caf8210;
+  border: 1px solid #4caf8230;
+  border-radius: 2px;
+  color: var(--green);
+}
+
+/* typing indicator */
+.typing { display: flex; align-items: center; gap: 5px; padding: 6px 0; }
+.typing-dot {
+  width: 5px; height: 5px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: blink 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+/* ── INPUT ── */
+.input-area {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 16px 0 20px;
+}
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+.input-row:focus-within { border-color: var(--gold); }
+#chatInput {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 300;
+  resize: none;
+  min-height: 22px;
+  max-height: 120px;
+  line-height: 1.5;
+}
+#chatInput::placeholder { color: var(--muted); }
+.send-btn {
+  background: var(--gold);
+  border: none;
+  border-radius: 2px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  color: var(--bg);
+  font-size: 14px;
+}
+.send-btn:hover { background: #d4b86a; }
+.send-btn:disabled { background: var(--dimmed); cursor: default; }
+
+.quick-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.quick-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--muted);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+}
+.quick-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── LOADING ── */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  gap: 16px;
+  transition: opacity 0.4s;
+}
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.loading-logo { font-family: 'Playfair Display', serif; font-size: 32px; font-style: italic; color: var(--gold); }
+.loading-dots { display: flex; gap: 6px; }
+.loading-dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: blink 1.2s ease-in-out infinite;
+}
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo">dory</div>
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+
+<header>
+  <div style="display:flex;align-items:baseline;gap:0">
+    <span class="logo-mark">dory</span>
+    <span class="logo-sub">· daily briefing</span>
+  </div>
+  <div class="header-right">
+    <span class="clock" id="clock">--:-- --</span>
+    <span class="next-brief" id="nextBriefLabel">Next: <span id="nextBriefTime">—</span></span>
+  </div>
+</header>
+
+<div class="schedule-strip">
+  <div class="sched-item">
+    <div class="sched-dot morning"></div>
+    <span class="sched-label">Morning briefing</span>
+    <span class="sched-time">8:30 am</span>
+  </div>
+  <div class="sched-item">
+    <div class="sched-dot evening"></div>
+    <span class="sched-label">Evening preview</span>
+    <span class="sched-time">9:00 pm</span>
+  </div>
+  <button class="trigger-btn" onclick="triggerBriefing('morning')">▶ Run morning now</button>
+  <button class="trigger-btn" onclick="triggerBriefing('evening')">▶ Run evening now</button>
+</div>
+
+<main>
+  <div class="messages" id="messages"></div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="chatInput" rows="1" placeholder="Ask anything about your schedule…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+    </div>
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="fillAndSend('What does my day look like today?')">Today's schedule</button>
+      <button class="quick-btn" onclick="fillAndSend('What free time do I have this week?')">Free windows</button>
+      <button class="quick-btn" onclick="fillAndSend('Any conflicts or back-to-back meetings I should know about?')">Check conflicts</button>
+      <button class="quick-btn" onclick="fillAndSend('What should I prep for today?')">What to prep</button>
+      <button class="quick-btn" onclick="fillAndSend('When can I schedule a 1-hour meeting this week?')">Find 1hr slot</button>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────
+const CALENDARS = {
+  primary: 'dory.ellis@gmail.com',
+  dm:      'michaelsgarfinkle@gmail.com',
+  ec:      'crk94q56n8o7fkj12h8880valiieinss@import.calendar.google.com',
+  holiday: 'en.usa#holiday@group.v.calendar.google.com',
+  family:  'family03093285931532505689@group.calendar.google.com',
+  work:    'cdiog0aatmbjq9l3tkefnif53a3h5dno@import.calendar.google.com',
+};
+
+const SYSTEM_PROMPT = `You are Dory's personal calendar assistant — sharp, warm, and efficient. You have access to all her Google Calendars via the gcal MCP tools.
+
+Her calendars:
+- primary (dory.ellis@gmail.com): her personal events
+- dm (michaelsgarfinkle@gmail.com): shared calendar with her partner Michael
+- ec (Explorers Club): club events she may attend  
+- holiday: US holidays
+- family: family calendar
+- work (Microsoft/Outlook import): her work meetings — events are labeled "Busy", "Tentative", or "Free"
+
+Rules:
+- Always query all relevant calendars before answering
+- Ignore work events labeled "Free" (transparency=transparent)
+- For Chief events at 13 E 19th St, add 30min travel buffer each way
+- Don't share personal event titles when summarizing for others — just say "personal commitment"
+- Morning briefing (8:30am): summarize TODAY's schedule — what's happening, when, gaps, anything to prep
+- Evening briefing (9pm): preview TOMORROW — what's on deck, free windows for meetings
+- Be concise and human. No bullet-point walls. Lead with the most important thing.
+- Format times as "10am", "2:30pm" — no 24h, no seconds
+- When listing free windows, exclude before 10am and factor in Chief travel buffers
+- Timezone is America/New_York (ET)`;
+
+// ── State ────────────────────────────────────────────────────────────
+let chatHistory = [];
+let isLoading = false;
+let schedulerTimer = null;
+
+// ── Clock ────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12 = h % 12 || 12;
+  document.getElementById('clock').textContent =
+    `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  updateNextBrief(now);
+}
+
+function updateNextBrief(now) {
+  const h = now.getHours(), m = now.getMinutes();
+  const totalMin = h * 60 + m;
+  const morningMin = 8 * 60 + 30;
+  const eveningMin = 21 * 60;
+  let nextMin, label;
+  if (totalMin < morningMin) { nextMin = morningMin; label = '8:30am morning'; }
+  else if (totalMin < eveningMin) { nextMin = eveningMin; label = '9:00pm evening'; }
+  else { nextMin = morningMin + 24 * 60; label = '8:30am morning'; }
+  const diffMin = nextMin - (totalMin > eveningMin ? totalMin - 24*60 : totalMin);
+  const diffH = Math.floor(Math.abs(diffMin) / 60);
+  const diffM = Math.abs(diffMin) % 60;
+  const timeStr = diffH > 0 ? `${diffH}h ${diffM}m` : `${diffM}m`;
+  document.getElementById('nextBriefTime').textContent = `${label} (in ${timeStr})`;
+}
+
+// ── Scheduler ────────────────────────────────────────────────────────
+function checkSchedule() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  if (h === 8 && m === 30) triggerBriefing('morning');
+  if (h === 21 && m === 0) triggerBriefing('evening');
+}
+
+// ── API Call ─────────────────────────────────────────────────────────
+async function callClaude(messages, extraSystemNote = '') {
+  const systemContent = SYSTEM_PROMPT + (extraSystemNote ? '\n\n' + extraSystemNote : '');
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      system: systemContent,
+      mcp_servers: [{ type: 'url', url: 'https://gcal.mcp.claude.com/mcp', name: 'gcal' }],
+      messages
+    })
+  });
+  if (!resp.ok) throw new Error(`API ${resp.status}`);
+  const data = await resp.json();
+  return data.content?.find(b => b.type === 'text')?.text || '(no response)';
+}
+
+// ── Briefing trigger ─────────────────────────────────────────────────
+async function triggerBriefing(type) {
+  if (isLoading) return;
+  const now = new Date();
+  const today = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  let prompt;
+  if (type === 'morning') {
+    prompt = `Good morning! It's ${today}. Please give me my morning briefing — what's on my schedule today across all my calendars? Start with the most important thing, then walk me through the day. Highlight any free windows (10am or later). Keep it conversational, under 200 words.`;
+  } else {
+    prompt = `It's ${today} evening. Please give me a preview of tomorrow (${tomorrowStr}) — what's on deck, any prep I should do tonight, and what free windows I'll have for meetings. Conversational, under 200 words.`;
+  }
+
+  const userMsg = { role: 'user', content: prompt };
+  chatHistory.push(userMsg);
+
+  addMessage('user', prompt, null, type === 'morning' ? 'morning' : 'evening');
+  const typingId = addTyping();
+  setLoading(true);
+
+  try {
+    const reply = await callClaude(chatHistory);
+    removeTyping(typingId);
+    const badge = type === 'morning' ? 'morning' : 'evening';
+    addMessage('agent', reply, badge);
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    removeTyping(typingId);
+    addMessage('agent', `⚠️ Couldn't reach the calendar right now — ${err.message}`, null);
+  }
+  setLoading(false);
+}
+
+// ── Chat ─────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+
+  input.value = '';
+  autoResize(input);
+
+  const userMsg = { role: 'user', content: text };
+  chatHistory.push(userMsg);
+  addMessage('user', text);
+
+  const typingId = addTyping();
+  setLoading(true);
+
+  try {
+    const reply = await callClaude(chatHistory);
+    removeTyping(typingId);
+    addMessage('agent', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    removeTyping(typingId);
+    addMessage('agent', `⚠️ Error: ${err.message}`);
+  }
+  setLoading(false);
+}
+
+function fillAndSend(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── Message rendering ────────────────────────────────────────────────
+function fmtTime() {
+  const now = new Date();
+  const h = now.getHours() % 12 || 12;
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const ap = now.getHours() >= 12 ? 'pm' : 'am';
+  return `${h}:${m}${ap}`;
+}
+
+function addMessage(role, text, badge = null, triggerType = null) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg';
+
+  const initial = role === 'agent' ? 'd' : 'you';
+  const avatarClass = role === 'agent' ? 'agent' : 'user';
+  const nameClass = role === 'agent' ? 'agent' : '';
+  const nameLabel = role === 'agent' ? 'Dory Assistant' : 'You';
+
+  let badgeHtml = '';
+  if (badge === 'morning') badgeHtml = `<span class="msg-badge morning">☀ Morning</span>`;
+  else if (badge === 'evening') badgeHtml = `<span class="msg-badge evening">◑ Evening</span>`;
+
+  // Convert markdown-ish to HTML
+  const formatted = formatText(text);
+
+  div.innerHTML = `
+    <div class="msg-avatar ${avatarClass}">${initial}</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span class="msg-name ${nameClass}">${nameLabel}</span>
+        <span class="msg-time">${fmtTime()}</span>
+        ${badgeHtml}
+      </div>
+      <div class="msg-content">${formatted}</div>
+    </div>`;
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function formatText(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:var(--surface2);padding:1px 5px;border-radius:2px;font-size:12px">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+let typingCounter = 0;
+function addTyping() {
+  const id = `typing-${typingCounter++}`;
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg'; div.id = id;
+  div.innerHTML = `
+    <div class="msg-avatar agent">d</div>
+    <div class="msg-body">
+      <div class="msg-meta"><span class="msg-name agent">Dory Assistant</span></div>
+      <div class="typing">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div>
+    </div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  document.getElementById(id)?.remove();
+}
+
+function setLoading(val) {
+  isLoading = val;
+  document.getElementById('sendBtn').disabled = val;
+  document.getElementById('chatInput').disabled = val;
+}
+
+// ── Welcome message ──────────────────────────────────────────────────
+function showWelcome() {
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const day = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  addMessage('agent', `**${greeting}, Dory.** It's ${day}.\n\nI'm watching your calendars and will send you a briefing automatically at **8:30am** each morning and a preview at **9:00pm** each evening.\n\nYou can also ask me anything about your schedule — tap a quick button below or just type.`);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+window.onload = () => {
+  setTimeout(() => {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    showWelcome();
+  }, 800);
+
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Check schedule every minute
+  setInterval(checkSchedule, 60000);
+};
+</script>
+</body>
+</html>

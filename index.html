@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dory · Availability</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1410;
+  --paper: #faf8f4;
+  --cream: #f2ede4;
+  --tan: #e8dfd0;
+  --muted: #9a8f82;
+  --accent: #c45e3e;
+  --accent2: #3e7cc4;
+  --gold: #b8860b;
+  --green: #2d6a4f;
+  --purple: #5c4a8a;
+  --slot-h: 28px;
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 18px 28px 16px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header-left { display: flex; align-items: baseline; gap: 14px; }
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  color: var(--paper);
+}
+.logo em { font-style: italic; color: #c8a87a; }
+.tagline { font-size: 10px; color: #888; letter-spacing: 1.5px; text-transform: uppercase; }
+.refresh-btn {
+  background: none; border: 1px solid #444; border-radius: var(--radius);
+  color: #aaa; font-family: 'DM Mono', monospace; font-size: 11px;
+  padding: 5px 12px; cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.refresh-btn:hover { border-color: #888; color: var(--paper); }
+.refresh-btn.spinning .spin-icon { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── STATUS BAR ── */
+.status-bar {
+  background: var(--cream); border-bottom: 1px solid var(--tan);
+  padding: 8px 28px; font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
+.status-dot.loading { background: var(--gold); animation: pulse 1s ease-in-out infinite; }
+.status-dot.error { background: var(--accent); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.cal-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.cal-pill {
+  padding: 2px 8px; border-radius: 2px; font-size: 10px;
+  background: var(--tan); color: var(--ink);
+}
+
+/* ── MAIN LAYOUT ── */
+.main { display: grid; grid-template-columns: 1fr 320px; min-height: calc(100vh - 95px); }
+@media(max-width:900px){ .main { grid-template-columns: 1fr; } }
+
+/* ── CALENDAR PANEL ── */
+.cal-panel { padding: 20px 24px 40px; border-right: 1px solid var(--tan); }
+
+.controls {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.nav-btn {
+  background: var(--cream); border: 1px solid var(--tan);
+  border-radius: var(--radius); padding: 5px 13px;
+  font-size: 14px; cursor: pointer; color: var(--ink); transition: background 0.1s;
+}
+.nav-btn:hover { background: var(--tan); }
+.week-label {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px; color: var(--ink); flex: 1;
+}
+.ctrl-group { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.ctrl-group select, .ctrl-group label {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  background: var(--cream); border: 1px solid var(--tan); border-radius: var(--radius);
+  padding: 4px 8px; color: var(--ink); cursor: pointer;
+}
+
+/* ── GRID ── */
+.grid-wrap { overflow-x: auto; }
+.cal-grid {
+  display: grid;
+  min-width: 540px;
+  background: #fff;
+  border: 1px solid var(--tan);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.col-hd {
+  padding: 8px 4px 7px; text-align: center;
+  font-size: 9px; font-weight: 500; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase;
+  border-bottom: 1px solid var(--tan); background: var(--cream);
+}
+.col-hd .day-num {
+  display: block; font-family: 'DM Serif Display', serif;
+  font-size: 20px; color: var(--ink); margin-top: 1px; letter-spacing: 0;
+}
+.col-hd.is-today { background: var(--ink); }
+.col-hd.is-today .day-num, .col-hd.is-today { color: var(--paper); }
+.col-hd.is-today .day-num {
+  background: var(--accent); color: #fff; border-radius: 50%;
+  width: 28px; height: 28px; display: inline-flex; align-items: center;
+  justify-content: center; font-size: 14px; margin: 2px auto 0;
+}
+
+.tlabel {
+  font-size: 9px; color: #ccc; text-align: right;
+  padding-right: 6px; height: var(--slot-h);
+  display: flex; align-items: center; justify-content: flex-end;
+  border-bottom: 1px solid #f5f3ef;
+}
+.slot {
+  height: var(--slot-h); border-left: 1px solid #f5f3ef;
+  border-bottom: 1px solid #f5f3ef;
+  position: relative; cursor: pointer; transition: background 0.08s;
+}
+.slot.free { background: #f6fbf8; }
+.slot.free:hover { background: #c8ead7; }
+.slot.off { background: var(--paper); cursor: default; }
+.slot.selected { background: #e8e0f8 !important; cursor: pointer; }
+.slot.selected::after {
+  content: ''; position: absolute; inset: 2px 4px;
+  background: var(--purple); border-radius: 2px; opacity: 0.7;
+}
+.slot.busy, .slot.tentative { cursor: default; }
+.slot.busy::after, .slot.tentative::after {
+  content: ''; position: absolute; inset: 2px 4px; border-radius: 2px;
+}
+.slot.busy::after { opacity: 0.62; }
+.slot.tentative::after { opacity: 0.28; border: 1.5px dashed; }
+
+.slot.busy.cal-primary::after   { background: #c45e3e; }
+.slot.busy.cal-dm::after        { background: #b8860b; }
+.slot.busy.cal-ec::after        { background: #c06020; }
+.slot.busy.cal-holiday::after   { background: #2d6a4f; }
+.slot.busy.cal-family::after    { background: #b83838; }
+.slot.busy.cal-work::after      { background: #3e5c9a; }
+.slot.tentative.cal-work::after { background: #3e5c9a; border-color: #3e5c9a; }
+
+.hday-spacer { height: 18px; border-bottom: 1px solid var(--tan); background: var(--cream); }
+.hday-cell {
+  height: 18px; font-size: 9px; color: var(--green); font-weight: 500;
+  letter-spacing: 0.5px; display: flex; align-items: center; padding-left: 4px;
+  border-left: 1px solid var(--tan); border-bottom: 1px solid var(--tan);
+  background: #edf7f1; overflow: hidden; white-space: nowrap;
+}
+.hday-empty { height: 18px; border-left: 1px solid var(--tan); border-bottom: 1px solid var(--tan); background: #fff; }
+
+/* loading skeleton */
+.skeleton-row { display: contents; }
+.skel {
+  height: var(--slot-h); border-left: 1px solid #f5f3ef; border-bottom: 1px solid #f5f3ef;
+  background: linear-gradient(90deg, var(--cream) 25%, var(--tan) 50%, var(--cream) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;
+}
+.li { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.ld { width: 10px; height: 10px; border-radius: 2px; }
+
+/* ── SIDE PANEL ── */
+.side-panel { padding: 20px 22px 40px; background: var(--cream); }
+.side-panel h2 {
+  font-family: 'DM Serif Display', serif; font-size: 17px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.count-badge {
+  background: var(--purple); color: #fff; border-radius: 2px;
+  padding: 1px 7px; font-size: 11px; font-family: 'DM Mono', monospace;
+  font-weight: 500;
+}
+
+/* Settings */
+.settings-section { margin-bottom: 20px; }
+.setting-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid var(--tan); font-size: 11px;
+  color: var(--muted);
+}
+.setting-row select, .setting-row input {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  background: #fff; border: 1px solid var(--tan); border-radius: var(--radius);
+  padding: 3px 6px; color: var(--ink);
+}
+
+/* Share output */
+.share-section { margin-top: 4px; }
+.share-label {
+  font-size: 10px; color: var(--muted); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.share-box {
+  background: #fff; border: 1px solid var(--tan); border-radius: var(--radius);
+  padding: 10px 12px; font-size: 12px; line-height: 1.7;
+  color: var(--ink); min-height: 80px; white-space: pre-wrap;
+  font-family: 'DM Mono', monospace;
+}
+.share-box.placeholder { color: var(--muted); font-style: italic; }
+
+.btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn {
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500;
+  border: none; border-radius: var(--radius); padding: 8px 14px;
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px;
+}
+.btn-gen { background: var(--ink); color: var(--paper); }
+.btn-gen:hover { background: #333; }
+.btn-copy { background: var(--tan); color: var(--ink); border: 1px solid #ccc; }
+.btn-copy:hover { background: #d5cfc6; }
+.btn-clear { background: none; color: var(--muted); border: 1px solid var(--tan); }
+.btn-clear:hover { background: var(--tan); }
+.copied-msg { font-size: 11px; color: var(--green); padding: 8px 0; opacity: 0; transition: opacity 0.3s; }
+.copied-msg.show { opacity: 1; }
+
+/* selected times list */
+.sel-list { margin: 12px 0 0; }
+.sel-list-title { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.sel-item {
+  font-size: 11px; padding: 4px 8px; background: #fff;
+  border: 1px solid var(--tan); border-radius: var(--radius);
+  margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;
+}
+.sel-item-rm { cursor: pointer; color: var(--muted); font-size: 14px; line-height: 1; }
+.sel-item-rm:hover { color: var(--accent); }
+
+/* error */
+.error-box {
+  background: #fff0ed; border: 1px solid #f5c6b8; border-radius: var(--radius);
+  padding: 12px 14px; font-size: 12px; color: #7a3020; margin: 20px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">dory<em>·</em>available</div>
+    <div class="tagline">real-time availability</div>
+  </div>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadCalendars()">
+    <span class="spin-icon">↻</span> Refresh
+  </button>
+</div>
+
+<div class="status-bar" id="statusBar">
+  <span class="status-dot loading" id="statusDot"></span>
+  <span id="statusText">Loading calendars…</span>
+  <div class="cal-pills" id="calPills"></div>
+</div>
+
+<div class="main">
+  <div class="cal-panel">
+    <div class="controls">
+      <button class="nav-btn" onclick="prevW()">‹</button>
+      <div class="week-label" id="weekLabel">—</div>
+      <button class="nav-btn" onclick="nextW()">›</button>
+      <div class="ctrl-group">
+        <select id="sh" onchange="renderGrid()"><option value="7">7am</option><option value="8" selected>8am</option><option value="9">9am</option></select>
+        <span style="font-size:10px;color:var(--muted)">to</span>
+        <select id="eh" onchange="renderGrid()"><option value="17">5pm</option><option value="18" selected>6pm</option><option value="19">7pm</option></select>
+        <select id="wkndSel" onchange="renderGrid()"><option value="0">Mon–Fri</option><option value="1">Full week</option></select>
+      </div>
+    </div>
+
+    <div class="grid-wrap">
+      <div class="cal-grid" id="calGrid" style="grid-template-columns: 44px repeat(5,1fr)">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="side-panel">
+    <h2>
+      Share Availability
+      <span class="count-badge" id="selCount">0</span>
+    </h2>
+
+    <div class="settings-section">
+      <div class="setting-row">
+        <span>Your name</span>
+        <input type="text" id="userName" value="Dory" style="width:110px">
+      </div>
+      <div class="setting-row">
+        <span>Timezone label</span>
+        <select id="tzLabel">
+          <option value="ET">ET</option><option value="CT">CT</option>
+          <option value="MT">MT</option><option value="PT">PT</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <span>Message style</span>
+        <select id="msgStyle">
+          <option value="casual">Casual</option>
+          <option value="professional">Professional</option>
+          <option value="brief">Brief</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sel-list" id="selList" style="display:none">
+      <div class="sel-list-title">Selected times</div>
+      <div id="selItems"></div>
+    </div>
+
+    <div class="share-section" style="margin-top:16px">
+      <div class="share-label">Shareable message</div>
+      <div class="share-box placeholder" id="shareBox">
+        Select open slots on the calendar, then generate a message to share.
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-gen" onclick="generateMsg()">Generate</button>
+      <button class="btn btn-copy" onclick="copyMsg()">Copy</button>
+      <button class="btn btn-clear" onclick="clearAll()">Clear</button>
+    </div>
+    <div class="copied-msg" id="copiedMsg">✓ Copied to clipboard</div>
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────
+const CALENDAR_IDS = {
+  primary: 'dory.ellis@gmail.com',
+  dm:      'michaelsgarfinkle@gmail.com',
+  ec:      'crk94q56n8o7fkj12h8880valiieinss@import.calendar.google.com',
+  holiday: 'en.usa#holiday@group.v.calendar.google.com',
+  family:  'family03093285931532505689@group.calendar.google.com',
+  work:    'cdiog0aatmbjq9l3tkefnif53a3h5dno@import.calendar.google.com',
+};
+const CAL_META = {
+  primary: { label: 'dory.ellis@gmail.com', color: '#c45e3e' },
+  dm:      { label: 'DM',                   color: '#b8860b' },
+  ec:      { label: 'Explorers Club',        color: '#c06020' },
+  holiday: { label: 'US Holidays',           color: '#2d6a4f' },
+  family:  { label: 'Family',                color: '#b83838' },
+  work:    { label: 'Work',                  color: '#3e5c9a' },
+};
+const HOLIDAYS_STATIC = { '2026-04-06':'Easter Monday', '2026-04-15':'Tax Day' };
+const MONS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOW_ALL = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOW_WD  = ['Mon','Tue','Wed','Thu','Fri'];
+
+// ── State ────────────────────────────────────────────────────────────
+let wo = 0;
+let sel = new Set();
+let busySlots = {}; // 'YYYY-MM-DD_HH' → {cal, type}
+let alldayBusy = {}; // 'YYYY-MM-DD' → calKey
+let holidays = { ...HOLIDAYS_STATIC };
+let loading = false;
+let loadError = null;
+
+const TODAY = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })();
+
+// ── Week helpers ─────────────────────────────────────────────────────
+function weekStart(off) {
+  const d = new Date(TODAY);
+  const dow = d.getDay();
+  d.setDate(d.getDate() + (dow===0 ? -6 : 1-dow) + off*7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function fdt(d) { return d.toISOString().slice(0,10); }
+function prevW() { wo--; renderGrid(); }
+function nextW() { wo++; renderGrid(); }
+
+// ── Calendar loading via Claude API + MCP ────────────────────────────
+async function loadCalendars() {
+  loading = true; loadError = null;
+  busySlots = {}; alldayBusy = {};
+  setStatus('loading', 'Fetching calendars…');
+  document.getElementById('refreshBtn').classList.add('spinning');
+
+  const ws = weekStart(wo);
+  // Fetch a wider window: current week + 3 weeks forward
+  const start = new Date(ws); start.setDate(start.getDate() - 7);
+  const end   = new Date(ws); end.setDate(end.getDate() + 28);
+  const tMin  = fdt(start) + 'T00:00:00';
+  const tMax  = fdt(end)   + 'T23:59:59';
+
+  const prompt = `You are a calendar data extraction assistant. Fetch events from ALL of these calendars for the time range ${tMin} to ${tMax} (America/New_York timezone):
+- primary: dory.ellis@gmail.com
+- dm: michaelsgarfinkle@gmail.com
+- ec: crk94q56n8o7fkj12h8880valiieinss@import.calendar.google.com
+- holiday: en.usa#holiday@group.v.calendar.google.com
+- family: family03093285931532505689@group.calendar.google.com
+- work: cdiog0aatmbjq9l3tkefnif53a3h5dno@import.calendar.google.com
+
+For EACH calendar, call gcal_list_events with maxResults=250 and timeZone=America/New_York.
+
+Then respond ONLY with a JSON object (no markdown, no explanation) in this exact format:
+{
+  "timed": [
+    {"cal":"<calKey>","type":"busy"|"tentative","s":"YYYY-MM-DDTHH:MM","e":"YYYY-MM-DDTHH:MM"}
+  ],
+  "allday": [
+    {"cal":"<calKey>","start":"YYYY-MM-DD","end":"YYYY-MM-DD"}
+  ],
+  "holidays": {
+    "YYYY-MM-DD": "Holiday Name"
+  }
+}
+
+Rules:
+- calKey must be one of: primary, dm, ec, holiday, family, work
+- All datetimes must be in ET local time (no Z, no offset)
+- For all-day events, end date is exclusive (day after last day)
+- From the work calendar, events named "Free" or with transparency=transparent should be EXCLUDED entirely
+- From the work calendar, events named "Tentative" should use type "tentative"
+- From the work calendar, events named "Busy" should use type "busy"
+- Holiday calendar events go in the "holidays" object as date→name pairs
+- Overlap is fine — include all events
+- Return only the JSON, nothing else`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        mcp_servers: [{ type: 'url', url: 'https://gcal.mcp.claude.com/mcp', name: 'gcal' }],
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!resp.ok) throw new Error(`API error ${resp.status}`);
+    const data = await resp.json();
+
+    // Extract text from response
+    let rawText = '';
+    for (const block of data.content || []) {
+      if (block.type === 'text') rawText += block.text;
+    }
+
+    // Parse JSON
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON found in response');
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Load into state
+    busySlots = {}; alldayBusy = {};
+    if (parsed.holidays) Object.assign(holidays, parsed.holidays);
+
+    // Process timed events
+    for (const ev of (parsed.timed || [])) {
+      const evS = new Date(ev.s), evE = new Date(ev.e);
+      let cur = new Date(evS);
+      while (cur < evE) {
+        const ds = fdt(cur);
+        const hr = cur.getHours();
+        const key = `${ds}_${hr}`;
+        const existing = busySlots[key];
+        // busy beats tentative
+        if (!existing || (existing.type === 'tentative' && ev.type === 'busy')) {
+          busySlots[key] = { cal: ev.cal, type: ev.type };
+        }
+        cur.setHours(cur.getHours() + 1);
+      }
+    }
+
+    // Process all-day events
+    for (const ad of (parsed.allday || [])) {
+      let cur = new Date(ad.start + 'T00:00:00');
+      const endD = new Date(ad.end + 'T00:00:00');
+      while (cur < endD) {
+        alldayBusy[fdt(cur)] = ad.cal;
+        cur.setDate(cur.getDate() + 1);
+      }
+    }
+
+    setStatus('ok', `Updated ${new Date().toLocaleTimeString()}`);
+    updateCalPills();
+  } catch(err) {
+    console.error(err);
+    loadError = err.message;
+    setStatus('error', 'Failed to load — using cached data');
+  }
+
+  loading = false;
+  document.getElementById('refreshBtn').classList.remove('spinning');
+  renderGrid();
+}
+
+function setStatus(state, msg) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (state==='loading'?' loading':state==='error'?' error':'');
+  document.getElementById('statusText').textContent = msg;
+}
+
+function updateCalPills() {
+  const pills = document.getElementById('calPills');
+  pills.innerHTML = Object.entries(CAL_META).map(([k,v]) =>
+    `<span class="cal-pill" style="background:${v.color}22;color:${v.color};border:1px solid ${v.color}44">${v.label}</span>`
+  ).join('');
+}
+
+// ── Render Grid ──────────────────────────────────────────────────────
+function renderGrid() {
+  const showWknd = document.getElementById('wkndSel').value === '1';
+  const SH = +document.getElementById('sh').value;
+  const EH = +document.getElementById('eh').value;
+  const ws = weekStart(wo);
+  const cols = showWknd ? 7 : 5;
+
+  const dates = [];
+  if (showWknd) {
+    const sun = new Date(ws); sun.setDate(ws.getDate() - 1);
+    for (let i=0; i<7; i++) { const d=new Date(sun); d.setDate(sun.getDate()+i); dates.push(d); }
+  } else {
+    for (let i=0; i<5; i++) { const d=new Date(ws); d.setDate(ws.getDate()+i); dates.push(d); }
+  }
+
+  const we = dates[dates.length-1];
+  document.getElementById('weekLabel').textContent =
+    `${MONS[dates[0].getMonth()]} ${dates[0].getDate()} – ${MONS[we.getMonth()]} ${we.getDate()}, ${we.getFullYear()}`;
+
+  const grid = document.getElementById('calGrid');
+  grid.style.gridTemplateColumns = `44px repeat(${cols},1fr)`;
+
+  let h = '';
+
+  // Header
+  h += `<div class="col-hd" style="background:var(--cream);border-bottom:1px solid var(--tan)"></div>`;
+  dates.forEach((d,i) => {
+    const isT = fdt(d) === fdt(TODAY);
+    const isW = d.getDay()===0 || d.getDay()===6;
+    const lbl = showWknd ? DOW_ALL[d.getDay()] : DOW_WD[i];
+    h += `<div class="col-hd${isT?' is-today':''}${isW?' weekend':''}">${lbl}<span class="day-num">${d.getDate()}</span></div>`;
+  });
+
+  // Holiday row
+  const hasH = dates.some(d => holidays[fdt(d)]);
+  if (hasH) {
+    h += `<div class="hday-spacer"></div>`;
+    dates.forEach(d => {
+      const hday = holidays[fdt(d)];
+      h += hday ? `<div class="hday-cell">🌿 ${hday}</div>` : `<div class="hday-empty"></div>`;
+    });
+  }
+
+  // Hour rows
+  for (let hr=SH; hr<EH; hr++) {
+    const lbl = hr===12?'12p':hr>12?`${hr-12}p`:`${hr}a`;
+    h += `<div class="tlabel">${lbl}</div>`;
+    dates.forEach(d => {
+      const ds = fdt(d), key = `${ds}_${hr}`;
+      const past = d < TODAY && fdt(d) !== fdt(TODAY);
+      const isW = d.getDay()===0 || d.getDay()===6;
+      const adCal = alldayBusy[ds];
+      const timedSlot = busySlots[key];
+      const isSel = sel.has(key);
+
+      if (loading) {
+        h += `<div class="skel"></div>`;
+      } else if (adCal) {
+        h += `<div class="slot busy cal-${adCal}"></div>`;
+      } else if (timedSlot) {
+        h += `<div class="slot ${timedSlot.type} cal-${timedSlot.cal}"></div>`;
+      } else if (past || (isW && !showWknd)) {
+        h += `<div class="slot off"></div>`;
+      } else if (isSel) {
+        h += `<div class="slot selected" onclick="toggleSlot('${key}','${ds}',${hr})"></div>`;
+      } else {
+        h += `<div class="slot free" onclick="toggleSlot('${key}','${ds}',${hr})"></div>`;
+      }
+    });
+  }
+
+  grid.innerHTML = h;
+  renderLegend();
+  updateSidePanel();
+}
+
+function renderLegend() {
+  const items = [
+    { color:'#c8ead7', label:'Free (click to select)' },
+    { color:'#a090cc', label:'Selected' },
+    ...Object.entries(CAL_META).map(([k,v]) => ({ color: v.color+'99', label: v.label+' busy' })),
+  ];
+  document.getElementById('legend').innerHTML = items.map(i =>
+    `<div class="li"><div class="ld" style="background:${i.color}"></div>${i.label}</div>`
+  ).join('');
+}
+
+// ── Slot toggling ────────────────────────────────────────────────────
+function toggleSlot(key, ds, hr) {
+  sel.has(key) ? sel.delete(key) : sel.add(key);
+  renderGrid();
+  if (document.getElementById('shareBox').dataset.hasContent === 'true') generateMsg();
+}
+
+function clearAll() {
+  sel.clear();
+  document.getElementById('shareBox').textContent = 'Select open slots on the calendar, then generate a message to share.';
+  document.getElementById('shareBox').classList.add('placeholder');
+  document.getElementById('shareBox').dataset.hasContent = '';
+  renderGrid();
+}
+
+// ── Side panel ───────────────────────────────────────────────────────
+function updateSidePanel() {
+  document.getElementById('selCount').textContent = sel.size;
+
+  const selList = document.getElementById('selList');
+  const selItems = document.getElementById('selItems');
+
+  if (sel.size === 0) { selList.style.display='none'; return; }
+  selList.style.display = 'block';
+
+  // Group by date
+  const byDate = {};
+  sel.forEach(k => {
+    const [ds, hr] = k.split('_');
+    if (!byDate[ds]) byDate[ds] = [];
+    byDate[ds].push(+hr);
+  });
+
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  selItems.innerHTML = Object.keys(byDate).sort().map(date => {
+    const hrs = byDate[date].sort((a,b)=>a-b);
+    const ranges = mergeHours(hrs);
+    const d = new Date(date+'T12:00:00');
+    const dl = `${DOW[d.getDay()]} ${MONS[d.getMonth()]} ${d.getDate()}`;
+    const fmt = h => h===12?'12pm':h>12?`${h-12}pm`:`${h}am`;
+    const timeStr = ranges.map(([s,e]) => `${fmt(s)}–${fmt(e+1)}`).join(', ');
+    return `<div class="sel-item"><span>${dl} · ${timeStr}</span><span class="sel-item-rm" onclick="removeDate('${date}')">×</span></div>`;
+  }).join('');
+}
+
+function removeDate(ds) {
+  sel.forEach(k => { if (k.startsWith(ds)) sel.delete(k); });
+  renderGrid();
+}
+
+function mergeHours(hrs) {
+  const ranges = []; let s=hrs[0], e=hrs[0];
+  for (let i=1;i<hrs.length;i++) { if(hrs[i]===e+1){e=hrs[i];}else{ranges.push([s,e]);s=e=hrs[i];} }
+  ranges.push([s,e]); return ranges;
+}
+
+// ── Message generation ───────────────────────────────────────────────
+function generateMsg() {
+  if (!sel.size) return;
+
+  const byDate = {};
+  sel.forEach(k => { const[ds,hr]=k.split('_'); if(!byDate[ds])byDate[ds]=[]; byDate[ds].push(+hr); });
+  const tz = document.getElementById('tzLabel').value;
+  const name = document.getElementById('userName').value || 'I';
+  const style = document.getElementById('msgStyle').value;
+
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const lines = Object.keys(byDate).sort().map(date => {
+    const hrs = byDate[date].sort((a,b)=>a-b);
+    const ranges = mergeHours(hrs);
+    const d = new Date(date+'T12:00:00');
+    const dl = `${DOW[d.getDay()]}, ${MONS[d.getMonth()]} ${d.getDate()}`;
+    const fmt = h => h===12?'12pm':h>12?`${h-12}pm`:`${h}am`;
+    return `  • ${dl}: ${ranges.map(([s,e])=>`${fmt(s)}–${fmt(e+1)}`).join(', ')} ${tz}`;
+  });
+
+  let msg;
+  if (style === 'casual') {
+    msg = `Hey! Here are some times that work for me:\n\n${lines.join('\n')}\n\nLet me know what works for you!`;
+  } else if (style === 'professional') {
+    msg = `Please find below my availability for the coming week. I'm happy to adjust if none of these times suit your schedule.\n\n${lines.join('\n')}\n\nI look forward to connecting.`;
+  } else {
+    msg = `Available:\n${lines.join('\n')}`;
+  }
+
+  const box = document.getElementById('shareBox');
+  box.textContent = msg;
+  box.classList.remove('placeholder');
+  box.dataset.hasContent = 'true';
+}
+
+function copyMsg() {
+  const box = document.getElementById('shareBox');
+  if (box.classList.contains('placeholder')) return;
+  navigator.clipboard.writeText(box.textContent).then(() => {
+    const el = document.getElementById('copiedMsg');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+updateCalPills();
+renderGrid();
+loadCalendars();
+</script>
+</body>
+</html>
