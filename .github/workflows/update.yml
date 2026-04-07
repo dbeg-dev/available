@@ -20,10 +20,13 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install dependencies
+        run: pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
+
       - name: Generate booking page
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GCAL_MCP_TOKEN: ${{ secrets.GCAL_MCP_TOKEN }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN_JSON }}
         run: python generate.py
 
       - name: Commit & push if changed
@@ -31,4 +34,4 @@ jobs:
           git config user.name  "dory-bot"
           git config user.email "dory.ellis@gmail.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Auto-refresh: $(date -u '+%Y-%m-%d %H:%M UTC')" && git push
+          git diff --cached --quiet || (git commit -m "Auto-refresh: $(date -u '+%Y-%m-%d %H:%M UTC')" && git push)

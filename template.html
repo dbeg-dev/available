@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book time with Dory Ellis</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f5f2;--white:#fff;--ink:#1a1714;--rule:#e4dfd8;
+  --warm:#8c8077;--muted:#b5ada4;--accent:#1a6b4a;--accent-l:#1a6b4a12;
+  --accent2:#8b4513;--hover:#f0ede8;
+}
+body{font-family:'DM Mono',monospace;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;}
+
+.card{background:var(--white);border-radius:16px;box-shadow:0 4px 40px rgba(0,0,0,.10);display:grid;grid-template-columns:280px 1fr;max-width:820px;width:100%;overflow:hidden;min-height:580px;}
+@media(max-width:680px){.card{grid-template-columns:1fr;max-width:400px;}}
+
+/* LEFT */
+.left{border-right:1px solid var(--rule);padding:36px 28px;display:flex;flex-direction:column;gap:6px;background:var(--white);}
+.avatar{width:52px;height:52px;border-radius:50%;background:#f0ede8;border:2px solid var(--rule);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:#8b6914;margin-bottom:8px;}
+.left-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--ink);line-height:1.2;}
+.left-name em{font-style:italic;color:var(--accent2);}
+.left-sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.dur-label{font-size:11px;color:var(--warm);margin-top:14px;margin-bottom:6px;}
+.dur-btns{display:flex;flex-wrap:wrap;gap:6px;}
+.dur-btn{font-family:'DM Mono',monospace;font-size:11px;background:none;border:1px solid var(--rule);border-radius:20px;padding:5px 12px;color:var(--warm);cursor:pointer;transition:all .15s;}
+.dur-btn:hover{border-color:var(--accent);color:var(--accent);}
+.dur-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.divider{border:none;border-top:1px solid var(--rule);margin:18px 0;}
+.meta-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--warm);}
+.meta-icon{font-size:13px;width:18px;text-align:center;}
+.updated{font-size:9px;color:var(--muted);margin-top:auto;padding-top:20px;line-height:1.5;}
+
+/* TABS */
+.right{display:flex;flex-direction:column;min-width:0;}
+.tabs{display:flex;border-bottom:1px solid var(--rule);flex-shrink:0;}
+.tab{flex:1;padding:16px 12px 13px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;}
+.tab:hover{color:var(--ink);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500;}
+.tab-panel{display:none;flex:1;flex-direction:column;padding:28px 30px;}
+.tab-panel.active{display:flex;}
+
+/* BOOK TAB */
+.right-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:18px;letter-spacing:.3px;}
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.month-label{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--ink);}
+.mnav-btn{background:none;border:1px solid var(--rule);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--warm);transition:all .15s;}
+.mnav-btn:hover{border-color:var(--ink);color:var(--ink);}
+.mnav-btn:disabled{opacity:.3;cursor:default;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:18px;}
+.dow{font-size:10px;color:var(--muted);text-align:center;padding:4px 0;letter-spacing:.5px;}
+.day-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:50%;cursor:pointer;transition:all .15s;color:var(--ink);font-weight:400;}
+.day-cell.empty,.day-cell.past,.day-cell.noavail{color:var(--muted);cursor:default;}
+.day-cell.avail:hover{background:var(--accent-l);color:var(--accent);}
+.day-cell.avail{color:var(--ink);font-weight:500;}
+.day-cell.selected{background:var(--accent)!important;color:#fff!important;font-weight:600;}
+.day-cell.today{border:1px solid var(--accent);color:var(--accent);}
+.slots-wrap{flex:1;overflow-y:auto;max-height:240px;}
+.slots-title{font-size:11px;color:var(--warm);margin-bottom:10px;letter-spacing:.5px;}
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.slot-btn{font-family:'DM Mono',monospace;font-size:12px;background:var(--accent-l);border:1.5px solid #1a6b4a30;border-radius:8px;padding:10px 8px;color:var(--accent);cursor:pointer;transition:all .15s;text-align:center;font-weight:500;}
+.slot-btn:hover,.slot-btn.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.no-slots,.pick-hint{font-size:12px;color:var(--muted);font-style:italic;padding:16px 0;}
+
+/* FORM */
+.form-panel{display:none;flex-direction:column;gap:0;padding:28px 30px;}
+.form-panel.on{display:flex;}
+.form-back{background:none;border:none;font-family:'DM Mono',monospace;font-size:11px;color:var(--warm);cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:18px;padding:0;}
+.form-back:hover{color:var(--ink);}
+.form-sel-time{background:var(--hover);border-radius:8px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.field{margin-bottom:13px;}
+.field label{font-size:10px;color:var(--warm);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.field input,.field textarea{width:100%;font-family:'DM Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:9px 12px;color:var(--ink);outline:none;transition:border-color .15s;}
+.field input:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:68px;line-height:1.6;}
+.book-btn{width:100%;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px;cursor:pointer;margin-top:4px;transition:background .15s;}
+.book-btn:hover{background:#155c3d;}
+.confirm-panel{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;flex:1;padding:20px 28px;}
+.confirm-panel.on{display:flex;}
+.confirm-check{font-size:42px;margin-bottom:14px;}
+.confirm-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--ink);margin-bottom:10px;}
+.confirm-detail{font-size:12px;color:var(--warm);line-height:1.8;}
+
+/* QUICK COPY TAB */
+.qc-intro{font-size:12px;color:var(--warm);line-height:1.7;margin-bottom:20px;}
+.qc-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.qc-chip{font-family:'DM Mono',monospace;font-size:11px;background:var(--hover);border:1px solid var(--rule);border-radius:20px;padding:5px 12px;color:var(--warm);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.qc-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l);}
+.qc-input-row{display:flex;gap:8px;margin-bottom:20px;}
+.qc-input{flex:1;font-family:'DM Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:9px 12px;color:var(--ink);outline:none;transition:border-color .15s;}
+.qc-input:focus{border-color:var(--accent);}
+.qc-go{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;transition:background .15s;white-space:nowrap;}
+.qc-go:hover{background:#155c3d;}
+.qc-result{background:var(--hover);border:1px solid var(--rule);border-radius:10px;padding:18px 20px;display:none;position:relative;}
+.qc-result.on{display:block;}
+.qc-result-title{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
+.qc-times{font-size:13px;color:var(--ink);line-height:2;white-space:pre-wrap;font-weight:300;}
+.qc-times strong{font-weight:500;}
+.qc-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+.qc-copy{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;transition:background .15s;}
+.qc-copy:hover{background:#155c3d;}
+.qc-regen{font-family:'DM Mono',monospace;font-size:11px;background:none;border:1px solid var(--rule);border-radius:6px;padding:7px 12px;color:var(--warm);cursor:pointer;transition:all .15s;}
+.qc-regen:hover{border-color:var(--ink);color:var(--ink);}
+.qc-copied{font-size:11px;color:var(--accent);opacity:0;transition:opacity .3s;align-self:center;}
+.qc-copied.on{opacity:1;}
+.qc-none{font-size:12px;color:var(--muted);font-style:italic;padding:4px 0;}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="avatar">D</div>
+    <div class="left-name"><em>Dory Ellis</em></div>
+    <div class="left-sub">New York &middot; ET</div>
+    <div class="dur-label">Meeting duration</div>
+    <div class="dur-btns">
+      <button class="dur-btn" onclick="setDur(30)">30 min</button>
+      <button class="dur-btn active" onclick="setDur(60)">1 hr</button>
+      <button class="dur-btn" onclick="setDur(45)">45 min</button>
+      <button class="dur-btn" onclick="setDur(90)">90 min</button>
+    </div>
+    <hr class="divider">
+    <div class="meta-row"><span class="meta-icon">🕐</span> Eastern Time (ET)</div>
+    <div class="meta-row"><span class="meta-icon">📍</span> New York, NY</div>
+    <div class="meta-row"><span class="meta-icon">📅</span> Weekdays only</div>
+    <div class="updated">Auto-updated hourly<br>Last refresh: __UPDATED__</div>
+  </div>
+
+  <!-- RIGHT: tabs -->
+  <div class="right">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('book')">📅 Book a time</button>
+      <button class="tab" onclick="switchTab('quick')">⚡ Quick availability</button>
+    </div>
+
+    <!-- BOOK TAB -->
+    <div class="tab-panel active" id="tab-book">
+      <div class="right-title">Select a date &amp; time</div>
+      <div class="month-nav">
+        <button class="mnav-btn" id="prev-btn" onclick="prevMonth()">&#8249;</button>
+        <div class="month-label" id="month-label"></div>
+        <button class="mnav-btn" onclick="nextMonth()">&#8250;</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="slots-wrap" id="slots-wrap">
+        <div class="pick-hint">&#8592; Pick a date to see available times</div>
+      </div>
+    </div>
+
+    <!-- QUICK COPY TAB -->
+    <div class="tab-panel" id="tab-quick">
+      <div class="qc-intro">
+        Get a few open times to paste directly into an email — no back-and-forth.<br>
+        Type a date, week, or month below, or tap a shortcut.
+      </div>
+      <div class="qc-row" id="qc-chips"></div>
+      <div class="qc-input-row">
+        <input class="qc-input" id="qc-input" type="text" placeholder="e.g. next Tuesday, week of Apr 21, April…" onkeydown="if(event.key==='Enter')qcGo()">
+        <button class="qc-go" onclick="qcGo()">Find times</button>
+      </div>
+      <div class="qc-result" id="qc-result">
+        <div class="qc-result-title" id="qc-result-title">Available times</div>
+        <div class="qc-times" id="qc-times"></div>
+        <div class="qc-actions">
+          <button class="qc-copy" onclick="qcCopy()">Copy to clipboard</button>
+          <button class="qc-regen" onclick="qcRegen()">↻ Different times</button>
+          <span class="qc-copied" id="qc-copied">✓ Copied!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM overlay -->
+    <div class="form-panel" id="form-panel">
+      <button class="form-back" onclick="showCal()">&#8592; Back</button>
+      <div class="form-sel-time"><span>&#10022;</span><span id="form-time-lbl"></span></div>
+      <div class="field"><label>Your name</label><input id="gname" type="text" placeholder="Jane Smith" autocomplete="name"></div>
+      <div class="field"><label>Email</label><input id="gemail" type="email" placeholder="jane@example.com" autocomplete="email"></div>
+      <div class="field"><label>Topic <span style="font-style:italic;opacity:.6">(optional)</span></label><textarea id="gnote" placeholder="Quick intro or what you'd like to discuss&hellip;"></textarea></div>
+      <button class="book-btn" id="book-btn" onclick="doBook()">Confirm booking &rarr;</button>
+    </div>
+
+    <!-- CONFIRM overlay -->
+    <div class="confirm-panel" id="confirm-panel">
+      <div class="confirm-check">&#10022;</div>
+      <div class="confirm-title">You're booked!</div>
+      <div class="confirm-detail" id="confirm-detail"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────
+const BUSY = __BUSY_JS__;
+const ALLDAY_BLOCKED = __ALLDAY_JS__;
+const HOLIDAYS = __HOLIDAYS_JS__;
+const TODAY_STR = '__TODAY_STR__';
+const TODAY = new Date(TODAY_STR+'T00:00:00');
+const EARLIEST=__EARLIEST__,LATEST=18;
+const MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_S=['Su','Mo','Tu','We','Th','Fr','Sa'];
+const DAYS_L=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+let dur=60,viewYear=2026,viewMonth=3,selDate=null,selSlot=null;
+let qcOffset=0; // for "different times" regen
+
+// ── Shared helpers ────────────────────────────────────────────────────
+function setDur(d){dur=d;document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));const L={30:'30 min',60:'1 hr',45:'45 min',90:'90 min'};document.querySelectorAll('.dur-btn').forEach(b=>{if(b.textContent===L[d])b.classList.add('active');});selSlot=null;if(selDate)renderSlots(selDate);if(document.getElementById('qc-result').classList.contains('on'))qcRegen();}
+
+function isBusy(s,e){for(const b of BUSY){const bs=new Date(b.s),be=new Date(b.e);if(s<be&&e>bs)return true;}return false;}
+
+function getSlots(ds){
+  if(ALLDAY_BLOCKED.includes(ds))return[];
+  const d=new Date(ds+'T00:00:00');
+  if(d.getDay()===0||d.getDay()===6)return[];
+  const slots=[];let h=EARLIEST,m=0;
+  while(true){
+    const s=new Date(ds+'T'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':00');
+    const e=new Date(s.getTime()+dur*60000);
+    if(e.getHours()>LATEST||(e.getHours()===LATEST&&e.getMinutes()>0))break;
+    if(s>TODAY&&!isBusy(s,e))slots.push(new Date(s));
+    m+=30;if(m>=60){h++;m=0;}
+  }
+  return slots;
+}
+
+function hasSlots(ds){return getSlots(ds).length>0;}
+function fmtDs(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function fmt(d){const h=d.getHours()%12||12,m=d.getMinutes(),ap=d.getHours()>=12?'pm':'am';return m===0?`${h}${ap}`:`${h}:${String(m).padStart(2,'0')}${ap}`;}
+
+// ── Tab switching ─────────────────────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',i===(t==='book'?0:1)));
+  document.getElementById('tab-book').classList.toggle('active',t==='book');
+  document.getElementById('tab-quick').classList.toggle('active',t==='quick');
+  if(t==='quick')buildQcChips();
+}
+
+// ── BOOK TAB ──────────────────────────────────────────────────────────
+function prevMonth(){viewMonth--;if(viewMonth<0){viewMonth=11;viewYear--;}renderCal();}
+function nextMonth(){viewMonth++;if(viewMonth>11){viewMonth=0;viewYear++;}renderCal();}
+
+function renderCal(){
+  document.getElementById('month-label').textContent=MONS[viewMonth]+' '+viewYear;
+  const pb=document.getElementById('prev-btn');
+  pb.disabled=(viewYear<TODAY.getFullYear()||(viewYear===TODAY.getFullYear()&&viewMonth<=TODAY.getMonth()));
+  const grid=document.getElementById('cal-grid');
+  let html=DAYS_S.map(d=>`<div class="dow">${d}</div>`).join('');
+  const first=new Date(viewYear,viewMonth,1).getDay();
+  const dim=new Date(viewYear,viewMonth+1,0).getDate();
+  for(let i=0;i<first;i++)html+=`<div class="day-cell empty"></div>`;
+  for(let d=1;d<=dim;d++){
+    const ds=fmtDs(viewYear,viewMonth,d);
+    const dt=new Date(ds+'T00:00:00');
+    const isPast=dt<=TODAY,isWknd=dt.getDay()===0||dt.getDay()===6;
+    const isToday=ds===TODAY_STR,isSel=ds===selDate;
+    const avail=!isPast&&!isWknd&&hasSlots(ds);
+    let cls='day-cell';
+    if(isSel)cls+=' selected';
+    else if(isPast||isWknd)cls+=' past';
+    else if(!avail)cls+=' noavail';
+    else{cls+=' avail';if(isToday)cls+=' today';}
+    const click=(avail&&!isSel)?`onclick="selDay('${ds}')"`:'' ;
+    html+=`<div class="${cls}" ${click}>${d}</div>`;
+  }
+  grid.innerHTML=html;
+}
+
+function selDay(ds){selDate=ds;selSlot=null;renderCal();renderSlots(ds);}
+
+function renderSlots(ds){
+  const slots=getSlots(ds);
+  const dt=new Date(ds+'T12:00:00');
+  const wrap=document.getElementById('slots-wrap');
+  const hday=HOLIDAYS[ds];
+  const dateLabel=DAYS_L[dt.getDay()]+', '+MONS_S[dt.getMonth()]+' '+dt.getDate()+(hday?' · '+hday:'');
+  if(!slots.length){wrap.innerHTML=`<div class="no-slots">No availability this day</div>`;return;}
+  let html=`<div class="slots-title">${dateLabel}</div><div class="slots-grid">`;
+  slots.forEach(slot=>{
+    const e=new Date(slot.getTime()+dur*60000);
+    const label=fmt(slot)+'–'+fmt(e);
+    const key=slot.toISOString();
+    html+=`<button class="slot-btn${selSlot===key?' sel':''}" onclick="selSlotFn('${key}','${label}','${dateLabel}')">${fmt(slot)}</button>`;
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+
+function selSlotFn(key,range,dateLabel){
+  selSlot=key;renderSlots(selDate);
+  setTimeout(()=>{
+    document.getElementById('tab-book').style.display='none';
+    document.querySelector('.tabs').style.display='none';
+    const fp=document.getElementById('form-panel');fp.classList.add('on');
+    document.getElementById('form-time-lbl').textContent=dateLabel+' · '+range+' ET · '+dur+' min';
+  },180);
+}
+
+function showCal(){
+  document.getElementById('form-panel').classList.remove('on');
+  document.getElementById('tab-book').style.display='';
+  document.querySelector('.tabs').style.display='';
+}
+
+async function doBook(){
+  const name=document.getElementById('gname').value.trim();
+  const email=document.getElementById('gemail').value.trim();
+  if(!name||!email){document.getElementById(name?'gemail':'gname').focus();return;}
+  const btn=document.getElementById('book-btn');btn.disabled=true;btn.textContent='Confirming…';
+  await new Promise(r=>setTimeout(r,900));
+  document.getElementById('form-panel').classList.remove('on');
+  document.querySelector('.tabs').style.display='none';
+  const cp=document.getElementById('confirm-panel');cp.classList.add('on');
+  const tl=document.getElementById('form-time-lbl').textContent;
+  document.getElementById('confirm-detail').innerHTML=`<strong>${name}</strong><br>${tl}<br><br>Confirmation sent to<br><strong>${email}</strong>`;
+}
+
+// ── QUICK COPY TAB ────────────────────────────────────────────────────
+function buildQcChips(){
+  const chips=document.getElementById('qc-chips');
+  if(chips.children.length)return;
+  const today=new Date(TODAY);
+  // Generate next few Mon labels
+  const labels=[];
+  const d=new Date(today);d.setDate(d.getDate()+1);
+  while(d.getDay()!==1)d.setDate(d.getDate()+1); // next Monday
+  for(let i=0;i<4;i++){
+    const mon=new Date(d);mon.setDate(d.getDate()+i*7);
+    const fri=new Date(mon);fri.setDate(mon.getDate()+4);
+    const label=`Week of ${MONS_S[mon.getMonth()]} ${mon.getDate()}`;
+    const val=`week:${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
+    labels.push({label,val});
+  }
+  // Also add individual days this week and next
+  const days=[];
+  const dd=new Date(today);dd.setDate(dd.getDate()+1);
+  for(let i=0;i<10;i++){
+    if(dd.getDay()!==0&&dd.getDay()!==6&&hasSlots(fmtDs(dd.getFullYear(),dd.getMonth(),dd.getDate()))){
+      days.push({label:DAYS_L[dd.getDay()]+' '+MONS_S[dd.getMonth()]+' '+dd.getDate(),val:`day:${fmtDs(dd.getFullYear(),dd.getMonth(),dd.getDate())}`});
+    }
+    dd.setDate(dd.getDate()+1);
+  }
+  [...days.slice(0,3),...labels.slice(0,3)].forEach(({label,val})=>{
+    const b=document.createElement('button');
+    b.className='qc-chip';b.textContent=label;
+    b.onclick=()=>{document.getElementById('qc-input').value=label;qcRun(val);};
+    chips.appendChild(b);
+  });
+}
+
+// Parse user input into a date range {start, end} (Date objects, inclusive)
+function parseQcInput(raw){
+  const s=raw.trim().toLowerCase();
+  const today=new Date(TODAY);
+
+  // Chip direct values
+  if(s.startsWith('week:')){
+    const ds=raw.split(':')[1];
+    const mon=new Date(ds+'T00:00:00');
+    const fri=new Date(mon);fri.setDate(mon.getDate()+4);
+    return {start:mon,end:fri,label:`Week of ${MONS_S[mon.getMonth()]} ${mon.getDate()}`};
+  }
+  if(s.startsWith('day:')){
+    const ds=raw.split(':')[1];
+    const d=new Date(ds+'T00:00:00');
+    return {start:d,end:d,label:DAYS_L[d.getDay()]+', '+MONS_S[d.getMonth()]+' '+d.getDate()};
+  }
+
+  // Month name e.g. "april", "may"
+  const monthIdx=MONS.findIndex(m=>s.includes(m.toLowerCase()));
+  if(monthIdx>=0){
+    const yr=2026;
+    const start=new Date(yr,monthIdx,1);
+    const end=new Date(yr,monthIdx+1,0);
+    // Don't show past days
+    if(start<today)start.setTime(today.getTime()+86400000);
+    return {start,end,label:MONS[monthIdx]+' 2026'};
+  }
+
+  // "next week" / "this week"
+  if(s.includes('next week')){
+    const mon=new Date(today);const dow=mon.getDay();
+    mon.setDate(mon.getDate()+(dow===0?1:8-dow));
+    const fri=new Date(mon);fri.setDate(mon.getDate()+4);
+    return {start:mon,end:fri,label:`Week of ${MONS_S[mon.getMonth()]} ${mon.getDate()}`};
+  }
+  if(s.includes('this week')||s.includes('week')){
+    const mon=new Date(today);const dow=mon.getDay();
+    mon.setDate(mon.getDate()+(dow<=1?1-dow:8-dow));
+    const fri=new Date(mon);fri.setDate(mon.getDate()+4);
+    return {start:mon,end:fri,label:`Week of ${MONS_S[mon.getMonth()]} ${mon.getDate()}`};
+  }
+
+  // "week of Apr 21" / "week of April 21"
+  const weekOfMatch=s.match(/week\s+of\s+(\w+)\s+(\d+)/);
+  if(weekOfMatch){
+    const mIdx=MONS_S.findIndex(m=>weekOfMatch[1].toLowerCase().startsWith(m.toLowerCase()));
+    if(mIdx>=0){
+      const day=parseInt(weekOfMatch[2]);
+      const mon=new Date(2026,mIdx,day);
+      // snap to Monday
+      while(mon.getDay()!==1)mon.setDate(mon.getDate()-1);
+      const fri=new Date(mon);fri.setDate(mon.getDate()+4);
+      return {start:mon,end:fri,label:`Week of ${MONS_S[mon.getMonth()]} ${mon.getDate()}`};
+    }
+  }
+
+  // Day of week: "next tuesday", "tuesday", "this friday" etc
+  const dowNames=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  for(let i=0;i<7;i++){
+    if(s.includes(dowNames[i])){
+      const d=new Date(today);d.setDate(d.getDate()+1);
+      while(d.getDay()!==i)d.setDate(d.getDate()+1);
+      if(s.includes('next')&&d<new Date(today.getTime()+7*86400000))d.setDate(d.getDate()+7);
+      return {start:d,end:d,label:DAYS_L[i]+', '+MONS_S[d.getMonth()]+' '+d.getDate()};
+    }
+  }
+
+  // "tomorrow"
+  if(s.includes('tomorrow')){
+    const d=new Date(today);d.setDate(d.getDate()+1);
+    return {start:d,end:d,label:DAYS_L[d.getDay()]+', '+MONS_S[d.getMonth()]+' '+d.getDate()};
+  }
+
+  // Date like "Apr 21" / "April 21"
+  const dateMatch=s.match(/(\w+)\s+(\d+)/);
+  if(dateMatch){
+    const mIdx=MONS_S.findIndex(m=>dateMatch[1].toLowerCase().startsWith(m.toLowerCase()));
+    if(mIdx>=0){
+      const day=parseInt(dateMatch[2]);
+      const d=new Date(2026,mIdx,day);
+      return {start:d,end:d,label:MONS_S[mIdx]+' '+day+', 2026'};
+    }
+  }
+
+  return null;
+}
+
+// Collect up to N well-spaced slots across a date range, offset by qcOffset
+function collectSlots(startD,endD,n=4,offset=0){
+  const results=[];
+  const d=new Date(startD);
+  // Gather all available slots across the range
+  const all=[];
+  while(d<=endD){
+    const ds=fmtDs(d.getFullYear(),d.getMonth(),d.getDate());
+    if(d.getDay()!==0&&d.getDay()!==6&&!ALLDAY_BLOCKED.includes(ds)){
+      const slots=getSlots(ds);
+      // Pick representative slots: morning, midday, afternoon
+      const morningSlots=slots.filter(s=>s.getHours()<12);
+      const midSlots=slots.filter(s=>s.getHours()>=12&&s.getHours()<14);
+      const afSlots=slots.filter(s=>s.getHours()>=14);
+      [morningSlots,midSlots,afSlots].forEach(group=>{if(group.length)all.push(group[Math.floor(group.length/2)]);});
+    }
+    d.setDate(d.getDate()+1);
+  }
+  // Apply offset cycling
+  const start=(offset*n)%Math.max(all.length,1);
+  for(let i=0;i<Math.min(n,all.length);i++){
+    results.push(all[(start+i*Math.max(1,Math.floor(all.length/n)))%all.length]);
+  }
+  return [...new Set(results)].sort((a,b)=>a-b).slice(0,n);
+}
+
+let qcParsed=null;
+
+function qcRun(val){
+  qcOffset=0;
+  qcParsed=parseQcInput(val||document.getElementById('qc-input').value);
+  qcRender();
+}
+
+function qcGo(){qcOffset=0;qcParsed=parseQcInput(document.getElementById('qc-input').value);qcRender();}
+function qcRegen(){qcOffset++;qcRender();}
+
+function qcRender(){
+  const result=document.getElementById('qc-result');
+  const timesEl=document.getElementById('qc-times');
+  const titleEl=document.getElementById('qc-result-title');
+  if(!qcParsed){
+    result.classList.remove('on');
+    timesEl.textContent='';
+    return;
+  }
+  result.classList.add('on');
+  const {start,end,label}=qcParsed;
+  titleEl.textContent=`Available times — ${label}`;
+  const slots=collectSlots(start,end,4,qcOffset);
+  if(!slots.length){
+    timesEl.innerHTML=`<span class="qc-none">No availability found in this window.</span>`;
+    return;
+  }
+  // Format as email-ready bullet list
+  const lines=slots.map(slot=>{
+    const e=new Date(slot.getTime()+dur*60000);
+    const ds=fmtDs(slot.getFullYear(),slot.getMonth(),slot.getDate());
+    const dt=new Date(ds+'T12:00:00');
+    return `• <strong>${DAYS_L[dt.getDay()]}, ${MONS_S[dt.getMonth()]} ${dt.getDate()}</strong> — ${fmt(slot)}–${fmt(e)} ET`;
+  });
+  timesEl.innerHTML=lines.join('\n');
+}
+
+function qcCopy(){
+  const timesEl=document.getElementById('qc-times');
+  const plain=timesEl.innerText;
+  navigator.clipboard.writeText(plain).then(()=>{
+    const el=document.getElementById('qc-copied');
+    el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2000);
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+renderCal();
+</script>
+</body>
+</html>
