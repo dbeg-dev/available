@@ -6,163 +6,253 @@
 <title>Book time with Dory Ellis</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#fbf9f6;--ink:#1c1814;--paper:#f4f0e8;--rule:#e2ddd4;--warm:#9c8e7e;--accent:#8b4513;--accent-l:#8b451318;--gold:#b5892a;--green:#3a6b4e;--green-l:#3a6b4e15;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--ink);min-height:100vh;}
-.wrap{max-width:560px;margin:0 auto;padding:56px 22px 80px;}
-.hero{margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid var(--rule);}
-.avatar{width:60px;height:60px;border-radius:50%;border:2px solid var(--rule);background:var(--paper);display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-family:'Cormorant Garamond',serif;font-size:24px;font-style:italic;color:var(--gold);}
-.hero-name{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;margin-bottom:5px;}
-.hero-name em{font-style:italic;color:var(--accent);}
-.hero-sub{font-size:11px;color:var(--warm);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
-.hero-note{font-size:12px;color:var(--warm);line-height:1.7;font-weight:300;}
-.updated{font-size:10px;color:var(--warm);margin-top:8px;opacity:.7;}
-.ctrl-row{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;align-items:flex-end;}
-.ctrl{display:flex;flex-direction:column;gap:3px;}
-.ctrl label{font-size:10px;color:var(--warm);letter-spacing:1.5px;text-transform:uppercase;}
-select{font-family:'DM Mono',monospace;font-size:12px;background:var(--paper);border:1px solid var(--rule);border-radius:2px;padding:6px 28px 6px 10px;color:var(--ink);cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%239c8e7e' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;}
-.day-section{margin-bottom:22px;}
-.day-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--rule);}
-.day-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;}
-.day-date{font-size:11px;color:var(--warm);}
-.no-slots{font-size:11px;color:var(--warm);font-style:italic;}
-.slots{display:flex;flex-wrap:wrap;gap:8px;}
-.slot-btn{font-family:'DM Mono',monospace;font-size:11px;background:var(--green-l);border:1px solid #3a6b4e30;border-radius:2px;padding:7px 14px;color:var(--green);cursor:pointer;transition:all .15s;}
-.slot-btn:hover,.slot-btn.sel{background:var(--green);color:#fff;border-color:var(--green);}
-.booking{background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:20px;margin-top:28px;display:none;}
-.booking.on{display:block;animation:in .25s ease;}
-@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.booking h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;margin-bottom:4px;}
-.btime{font-size:12px;color:var(--accent);margin-bottom:16px;font-weight:500;}
-.field{margin-bottom:13px;}
-.field label{font-size:10px;color:var(--warm);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:4px;}
-.field input,.field textarea{width:100%;font-family:'DM Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--rule);border-radius:2px;padding:8px 10px;color:var(--ink);outline:none;transition:border-color .15s;}
+:root{
+  --bg:#f7f5f2;--white:#fff;--ink:#1a1714;--rule:#e4dfd8;
+  --warm:#8c8077;--muted:#b5ada4;--accent:#1a6b4a;--accent-l:#1a6b4a12;
+  --accent2:#2563eb;--hover:#f0ede8;--sel-bg:#1a6b4a;--sel-fg:#fff;
+}
+body{font-family:'DM Mono',monospace;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;}
+
+/* ── CARD ── */
+.card{
+  background:var(--white);border-radius:16px;
+  box-shadow:0 4px 40px rgba(0,0,0,.10);
+  display:grid;grid-template-columns:280px 1fr;
+  max-width:820px;width:100%;overflow:hidden;
+  min-height:580px;
+}
+@media(max-width:680px){.card{grid-template-columns:1fr;max-width:400px;}}
+
+/* ── LEFT PANEL ── */
+.left{
+  border-right:1px solid var(--rule);
+  padding:36px 28px;
+  display:flex;flex-direction:column;gap:6px;
+  background:var(--white);
+}
+.avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:#f0ede8;border:2px solid var(--rule);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:22px;
+  font-style:italic;color:#8b6914;margin-bottom:8px;
+}
+.left-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--ink);line-height:1.2;}
+.left-name em{font-style:italic;color:#8b4513;}
+.left-sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.dur-label{font-size:11px;color:var(--warm);margin-top:14px;margin-bottom:6px;}
+.dur-btns{display:flex;flex-wrap:wrap;gap:6px;}
+.dur-btn{
+  font-family:'DM Mono',monospace;font-size:11px;
+  background:none;border:1px solid var(--rule);border-radius:20px;
+  padding:5px 12px;color:var(--warm);cursor:pointer;transition:all .15s;
+}
+.dur-btn:hover{border-color:var(--accent);color:var(--accent);}
+.dur-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.divider{border:none;border-top:1px solid var(--rule);margin:20px 0;}
+.meta-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--warm);}
+.meta-icon{font-size:13px;width:18px;text-align:center;}
+.updated{font-size:10px;color:var(--muted);margin-top:auto;padding-top:20px;}
+
+/* ── RIGHT PANEL ── */
+.right{padding:36px 32px;display:flex;flex-direction:column;}
+.right-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:20px;letter-spacing:.3px;}
+
+/* ── MONTH NAV ── */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.month-label{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--ink);}
+.mnav-btn{background:none;border:1px solid var(--rule);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--warm);transition:all .15s;}
+.mnav-btn:hover{border-color:var(--ink);color:var(--ink);}
+.mnav-btn:disabled{opacity:.3;cursor:default;}
+
+/* ── CALENDAR GRID ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:24px;}
+.dow{font-size:10px;color:var(--muted);text-align:center;padding:4px 0;letter-spacing:.5px;}
+.day-cell{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:12px;border-radius:50%;cursor:pointer;transition:all .15s;
+  color:var(--ink);font-weight:400;
+}
+.day-cell.empty{cursor:default;}
+.day-cell.past{color:var(--muted);cursor:default;}
+.day-cell.noavail{color:var(--muted);cursor:default;}
+.day-cell.avail:hover{background:var(--accent-l);color:var(--accent);}
+.day-cell.avail{color:var(--ink);font-weight:500;}
+.day-cell.selected{background:var(--sel-bg)!important;color:var(--sel-fg)!important;font-weight:600;}
+.day-cell.today{border:1px solid var(--accent);color:var(--accent);}
+
+/* ── TIME SLOTS ── */
+.slots-wrap{flex:1;overflow-y:auto;max-height:280px;}
+.slots-title{font-size:11px;color:var(--warm);margin-bottom:12px;letter-spacing:.5px;}
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(max-width:520px){.slots-grid{grid-template-columns:repeat(2,1fr);}}
+.slot-btn{
+  font-family:'DM Mono',monospace;font-size:12px;
+  background:var(--accent-l);border:1.5px solid #1a6b4a30;
+  border-radius:8px;padding:10px 8px;color:var(--accent);
+  cursor:pointer;transition:all .15s;text-align:center;
+  font-weight:500;
+}
+.slot-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.slot-btn.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.no-slots{font-size:12px;color:var(--muted);font-style:italic;padding:12px 0;}
+.pick-hint{font-size:12px;color:var(--muted);font-style:italic;padding:20px 0;}
+
+/* ── BOOKING FORM (replaces right panel) ── */
+.form-panel{display:none;flex-direction:column;gap:0;}
+.form-panel.on{display:flex;}
+.form-back{background:none;border:none;font-family:'DM Mono',monospace;font-size:11px;color:var(--warm);cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:20px;padding:0;}
+.form-back:hover{color:var(--ink);}
+.form-selected-time{
+  background:var(--hover);border-radius:8px;padding:12px 14px;
+  margin-bottom:20px;font-size:12px;color:var(--ink);
+  display:flex;align-items:center;gap:8px;
+}
+.form-selected-time .time-icon{font-size:15px;}
+.field{margin-bottom:14px;}
+.field label{font-size:10px;color:var(--warm);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.field input,.field textarea{
+  width:100%;font-family:'DM Mono',monospace;font-size:12px;
+  background:var(--bg);border:1px solid var(--rule);border-radius:6px;
+  padding:9px 12px;color:var(--ink);outline:none;transition:border-color .15s;
+}
 .field input:focus,.field textarea:focus{border-color:var(--accent);}
-.field textarea{resize:vertical;min-height:68px;line-height:1.6;}
-.book-btn{width:100%;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;background:var(--ink);color:var(--bg);border:none;border-radius:2px;padding:11px;cursor:pointer;margin-top:6px;transition:background .15s;}
-.book-btn:hover{background:#333;}
-.confirm{text-align:center;padding:36px 16px;display:none;}
-.confirm.on{display:block;animation:in .3s ease;}
-.confirm-icon{font-size:34px;margin-bottom:12px;}
-.confirm-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;margin-bottom:8px;}
-.confirm-sub{font-size:12px;color:var(--warm);line-height:1.7;}
-footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);font-size:10px;color:var(--warm);display:flex;justify-content:space-between;}
+.field textarea{resize:vertical;min-height:72px;line-height:1.6;}
+.book-btn{
+  width:100%;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  padding:12px;cursor:pointer;margin-top:4px;transition:background .15s;
+}
+.book-btn:hover{background:#155c3d;}
+
+/* ── CONFIRM ── */
+.confirm-panel{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;flex:1;padding:20px;}
+.confirm-panel.on{display:flex;}
+.confirm-check{font-size:42px;margin-bottom:16px;}
+.confirm-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--ink);margin-bottom:10px;}
+.confirm-detail{font-size:12px;color:var(--warm);line-height:1.8;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hero">
+<div class="card">
+
+  <!-- LEFT PANEL -->
+  <div class="left">
     <div class="avatar">D</div>
-    <div class="hero-name">Book time with <em>Dory Ellis</em></div>
-    <div class="hero-sub">New York · Eastern Time</div>
-    <div class="hero-note">Pick a time that works for you. All slots reflect my live calendar — no double-booking.</div>
-    <div class="updated">Last updated: April 6, 2026</div>
+    <div class="left-name"><em>Dory Ellis</em></div>
+    <div class="left-sub">New York · ET</div>
+
+    <div class="dur-label">Meeting duration</div>
+    <div class="dur-btns">
+      <button class="dur-btn" onclick="setDur(30)">30 min</button>
+      <button class="dur-btn active" onclick="setDur(60)">1 hr</button>
+      <button class="dur-btn" onclick="setDur(45)">45 min</button>
+      <button class="dur-btn" onclick="setDur(90)">90 min</button>
+    </div>
+
+    <hr class="divider">
+    <div class="meta-row"><span class="meta-icon">🕐</span> Eastern Time (ET)</div>
+    <div class="meta-row"><span class="meta-icon">📍</span> New York, NY</div>
+    <div class="meta-row"><span class="meta-icon">📅</span> Weekdays only</div>
+
+    <div class="updated">Updated Apr 6, 2026</div>
   </div>
 
-  <div class="ctrl-row">
-    <div class="ctrl">
-      <label>Duration</label>
-      <select id="dur" onchange="render()">
-        <option value="30">30 minutes</option>
-        <option value="45">45 minutes</option>
-        <option value="60" selected>1 hour</option>
-        <option value="90">90 minutes</option>
-      </select>
+  <!-- RIGHT PANEL -->
+  <div class="right" id="right-panel">
+    <div class="right-title">Select a date &amp; time</div>
+
+    <div class="month-nav">
+      <button class="mnav-btn" id="prev-btn" onclick="prevMonth()">‹</button>
+      <div class="month-label" id="month-label"></div>
+      <button class="mnav-btn" onclick="nextMonth()">›</button>
+    </div>
+
+    <div class="cal-grid" id="cal-grid"></div>
+
+    <div class="slots-wrap" id="slots-wrap">
+      <div class="pick-hint">← Pick a date to see available times</div>
     </div>
   </div>
 
-  <div id="slots-area"></div>
-
-  <div class="booking" id="booking">
-    <h3>Confirm your booking</h3>
-    <div class="btime" id="btime"></div>
-    <div class="field"><label>Your name</label><input id="gname" type="text" placeholder="Jane Smith"></div>
-    <div class="field"><label>Email</label><input id="gemail" type="email" placeholder="jane@example.com"></div>
-    <div class="field"><label>Topic <span style="font-style:italic;color:var(--warm)">(optional)</span></label><textarea id="gnote" placeholder="Quick intro or what you'd like to discuss…"></textarea></div>
-    <button class="book-btn" onclick="doBook()">Request this time →</button>
+  <!-- BOOKING FORM -->
+  <div class="right form-panel" id="form-panel">
+    <button class="form-back" onclick="showCalendar()">← Back</button>
+    <div class="form-selected-time">
+      <span class="time-icon">✦</span>
+      <span id="form-time-label"></span>
+    </div>
+    <div class="field"><label>Your name</label><input id="gname" type="text" placeholder="Jane Smith" autocomplete="name"></div>
+    <div class="field"><label>Email</label><input id="gemail" type="email" placeholder="jane@example.com" autocomplete="email"></div>
+    <div class="field"><label>Topic <span style="font-style:italic;opacity:.6">(optional)</span></label><textarea id="gnote" placeholder="Quick intro or what you'd like to discuss…"></textarea></div>
+    <button class="book-btn" id="book-btn" onclick="doBook()">Confirm booking →</button>
   </div>
 
-  <div class="confirm" id="confirm">
-    <div class="confirm-icon">✦</div>
-    <div class="confirm-title">Request sent</div>
-    <div class="confirm-sub" id="confirm-sub"></div>
+  <!-- CONFIRM -->
+  <div class="right confirm-panel" id="confirm-panel">
+    <div class="confirm-check">✦</div>
+    <div class="confirm-title">You're booked!</div>
+    <div class="confirm-detail" id="confirm-detail"></div>
   </div>
 
-  <footer>
-    <span>dory.ellis@gmail.com</span>
-    <span>dory · available</span>
-  </footer>
 </div>
 
 <script>
-// ── Busy blocks (Apr 7 – Apr 24, 2026) — all times ET ──────────────
-// Rules applied: no slots before 10am, Chief events (+30min buffer each side),
-// work "Free"/transparent events excluded
+// ── Busy data (Apr 7–24, 2026, ET) ──────────────────────────────────
 const BUSY = [
-  // Apr 7
   {s:'2026-04-07T10:00',e:'2026-04-07T14:05'},
   {s:'2026-04-07T15:30',e:'2026-04-07T17:30'},
   {s:'2026-04-07T19:00',e:'2026-04-07T21:00'},
-  // Apr 8
   {s:'2026-04-08T09:30',e:'2026-04-08T15:00'},
   {s:'2026-04-08T15:30',e:'2026-04-08T16:00'},
-  // Apr 9
   {s:'2026-04-09T11:00',e:'2026-04-09T15:30'},
   {s:'2026-04-09T16:00',e:'2026-04-09T17:00'},
-  // Apr 10
   {s:'2026-04-10T10:00',e:'2026-04-10T11:00'},
   {s:'2026-04-10T14:00',e:'2026-04-10T14:30'},
-  // Apr 11 - weekend, skip
-  // Apr 12 - weekend, skip
-  // Apr 13
   {s:'2026-04-13T10:00',e:'2026-04-13T12:30'},
   {s:'2026-04-13T14:00',e:'2026-04-13T14:45'},
-  {s:'2026-04-13T17:30',e:'2026-04-13T21:00'}, // Chief 6-8pm + 30min travel each side
-  // Apr 14
+  {s:'2026-04-13T17:30',e:'2026-04-13T21:00'},
   {s:'2026-04-14T09:00',e:'2026-04-14T12:30'},
-  // Apr 15 (Tax Day)
   {s:'2026-04-15T09:30',e:'2026-04-15T10:30'},
   {s:'2026-04-15T12:00',e:'2026-04-15T13:30'},
-  {s:'2026-04-15T17:30',e:'2026-04-15T20:30'}, // Explorers Club 6-8:30pm + travel
-  // Apr 16
-  {s:'2026-04-16T14:30',e:'2026-04-16T15:30'},
-  {s:'2026-04-16T15:30',e:'2026-04-16T20:00'}, // Ganz 4-5pm + Chief 6-8pm + travel
-  // Apr 17 — ECAD all day + Dr Sarasohn
-  {s:'2026-04-17T08:00',e:'2026-04-17T23:00'},
-  // Apr 18 — ECAD Saturday all day
-  {s:'2026-04-18T08:00',e:'2026-04-18T23:00'},
-  // Apr 19 — ECAD Sunday + Comedy Cellar
-  {s:'2026-04-19T08:00',e:'2026-04-19T17:00'},
-  // Apr 20
+  {s:'2026-04-15T17:30',e:'2026-04-15T20:30'},
+  {s:'2026-04-16T14:30',e:'2026-04-16T20:00'},
+  {s:'2026-04-17T00:00',e:'2026-04-17T23:59'},
+  {s:'2026-04-18T00:00',e:'2026-04-18T23:59'},
+  {s:'2026-04-19T00:00',e:'2026-04-19T23:59'},
   {s:'2026-04-20T10:00',e:'2026-04-20T12:45'},
-  // Apr 21
   {s:'2026-04-21T09:00',e:'2026-04-21T14:05'},
-  // Apr 22
   {s:'2026-04-22T09:30',e:'2026-04-22T10:30'},
   {s:'2026-04-22T12:00',e:'2026-04-22T16:00'},
-  {s:'2026-04-22T15:30',e:'2026-04-22T16:00'},
-  // Apr 23
   {s:'2026-04-23T11:00',e:'2026-04-23T11:30'},
-  {s:'2026-04-23T14:30',e:'2026-04-23T15:30'},
-  {s:'2026-04-23T15:30',e:'2026-04-23T17:30'}, // Block for kids overnight
-  // Apr 24
+  {s:'2026-04-23T14:30',e:'2026-04-23T17:30'},
   {s:'2026-04-24T08:45',e:'2026-04-24T10:00'},
 ];
-
-// All-day blocked dates
-const ALLDAY = [
-  '2026-04-17','2026-04-18','2026-04-19',
-  '2026-04-21' // Graciela
-];
-
-const HOLIDAYS = {'2026-04-15':'Tax Day'};
-const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const TODAY = new Date('2026-04-06T00:00:00');
+const ALLDAY_BLOCKED = ['2026-04-17','2026-04-18','2026-04-19'];
+const TODAY_STR = '2026-04-06';
+const TODAY = new Date(TODAY_STR + 'T00:00:00');
 const EARLIEST = 10, LATEST = 18;
+const MONS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+const DAYS_LONG = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-let selSlot = null;
+let dur = 60;
+let viewYear = 2026, viewMonth = 3; // April = month index 3
+let selDate = null, selSlot = null;
 
+// ── Duration ─────────────────────────────────────────────────────────
+function setDur(d) {
+  dur = d;
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+  const labels = {30:'30 min',60:'1 hr',45:'45 min',90:'90 min'};
+  document.querySelectorAll('.dur-btn').forEach(b => { if(b.textContent === labels[d]) b.classList.add('active'); });
+  selSlot = null;
+  if (selDate) renderSlots(selDate);
+}
+
+// ── Busy check ────────────────────────────────────────────────────────
 function isBusy(s, e) {
   for (const b of BUSY) {
     const bs = new Date(b.s), be = new Date(b.e);
@@ -171,20 +261,84 @@ function isBusy(s, e) {
   return false;
 }
 
-function getSlots(date, durMin) {
-  const ds = date.toISOString().slice(0,10);
-  if (ALLDAY.includes(ds)) return [];
+function getSlots(dateStr) {
+  if (ALLDAY_BLOCKED.includes(dateStr)) return [];
+  const d = new Date(dateStr + 'T00:00:00');
+  if (d.getDay() === 0 || d.getDay() === 6) return [];
   const slots = [];
   let h = EARLIEST, m = 0;
   while (true) {
-    const s = new Date(ds + 'T' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':00');
-    const e = new Date(s.getTime() + durMin * 60000);
-    if (e.getHours() > LATEST || (e.getHours() === LATEST && e.getMinutes() > 0)) break;
-    if (s <= TODAY) { m += 30; if (m >= 60) { h++; m = 0; } continue; }
+    const s = new Date(dateStr + 'T' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':00');
+    const e = new Date(s.getTime() + dur * 60000);
+    const eH = e.getHours(), eM = e.getMinutes();
+    if (eH > LATEST || (eH === LATEST && eM > 0)) break;
     if (!isBusy(s, e)) slots.push(new Date(s));
     m += 30; if (m >= 60) { h++; m = 0; }
   }
   return slots;
+}
+
+function hasAnySlots(dateStr) {
+  return getSlots(dateStr).length > 0;
+}
+
+// ── Month navigation ──────────────────────────────────────────────────
+function prevMonth() {
+  viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+  renderCal();
+}
+function nextMonth() {
+  viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  renderCal();
+}
+
+// ── Calendar render ───────────────────────────────────────────────────
+function fmtDs(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function renderCal() {
+  document.getElementById('month-label').textContent = `${MONS[viewMonth]} ${viewYear}`;
+
+  // Disable prev if we're already at/before current month
+  const prevBtn = document.getElementById('prev-btn');
+  prevBtn.disabled = (viewYear < 2026 || (viewYear === 2026 && viewMonth <= 3));
+
+  const grid = document.getElementById('cal-grid');
+  let html = DAYS_SHORT.map(d => `<div class="dow">${d}</div>`).join('');
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) html += `<div class="day-cell empty"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = fmtDs(viewYear, viewMonth, d);
+    const dt = new Date(ds + 'T00:00:00');
+    const isPast = dt <= TODAY;
+    const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
+    const isToday = ds === TODAY_STR;
+    const isSel = ds === selDate;
+    const avail = !isPast && !isWeekend && hasAnySlots(ds);
+
+    let cls = 'day-cell';
+    if (isSel) cls += ' selected';
+    else if (isPast || isWeekend) cls += ' past';
+    else if (!avail) cls += ' noavail';
+    else { cls += ' avail'; if (isToday) cls += ' today'; }
+
+    const click = avail && !isSel ? `onclick="selectDate('${ds}')"` : '';
+    html += `<div class="${cls}" ${click}>${d}</div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+// ── Date selection ────────────────────────────────────────────────────
+function selectDate(ds) {
+  selDate = ds; selSlot = null;
+  renderCal();
+  renderSlots(ds);
 }
 
 function fmt(d) {
@@ -192,72 +346,68 @@ function fmt(d) {
   return m === 0 ? `${h}${ap}` : `${h}:${String(m).padStart(2,'0')}${ap}`;
 }
 
-function render() {
-  const dur = parseInt(document.getElementById('dur').value);
-  const area = document.getElementById('slots-area');
-  let html = '';
-  let anySlots = false;
+function renderSlots(ds) {
+  const slots = getSlots(ds);
+  const dt = new Date(ds + 'T12:00:00');
+  const wrap = document.getElementById('slots-wrap');
 
-  for (let i = 1; i <= 14; i++) {
-    const d = new Date(TODAY); d.setDate(TODAY.getDate() + i);
-    if (d.getDay() === 0 || d.getDay() === 6) continue; // skip weekends
-    const slots = getSlots(d, dur);
-    const ds = d.toISOString().slice(0,10);
-    const hday = HOLIDAYS[ds];
-
-    html += `<div class="day-section">
-      <div class="day-hd">
-        <span class="day-name">${DAYS[d.getDay()]}</span>
-        <span class="day-date">${MONS[d.getMonth()]} ${d.getDate()}${hday ? ' · 🌿 ' + hday : ''}</span>
-      </div>`;
-
-    if (slots.length === 0) {
-      html += `<div class="no-slots">No availability this day</div>`;
-    } else {
-      anySlots = true;
-      html += `<div class="slots">`;
-      slots.forEach(slot => {
-        const e = new Date(slot.getTime() + dur * 60000);
-        const label = `${fmt(slot)}–${fmt(e)}`;
-        const key = slot.toISOString();
-        const sel = selSlot === key ? ' sel' : '';
-        html += `<button class="slot-btn${sel}" onclick="pick('${key}','${label}, ${DAYS[d.getDay()]} ${MONS[d.getMonth()]} ${d.getDate()}')">${label}</button>`;
-      });
-      html += `</div>`;
-    }
-    html += `</div>`;
+  if (slots.length === 0) {
+    wrap.innerHTML = `<div class="no-slots">No availability on this day</div>`;
+    return;
   }
 
-  if (!anySlots) html = `<div style="font-size:12px;color:var(--warm);font-style:italic;padding:16px 0">No availability in the next two weeks. Please email dory.ellis@gmail.com directly.</div>`;
-  area.innerHTML = html;
+  const dateLabel = `${DAYS_LONG[dt.getDay()]}, ${MONS_S[dt.getMonth()]} ${dt.getDate()}`;
+  let html = `<div class="slots-title">${dateLabel}</div><div class="slots-grid">`;
+  slots.forEach(slot => {
+    const e = new Date(slot.getTime() + dur * 60000);
+    const label = `${fmt(slot)}–${fmt(e)}`;
+    const key = slot.toISOString();
+    const isSel = selSlot === key;
+    html += `<button class="slot-btn${isSel?' sel':''}" onclick="selectSlot('${key}','${label}','${dateLabel}')">${fmt(slot)}</button>`;
+  });
+  html += `</div>`;
+  wrap.innerHTML = html;
 }
 
-function pick(key, label) {
+// ── Slot selection & form ─────────────────────────────────────────────
+function selectSlot(key, timeRange, dateLabel) {
   selSlot = key;
-  render();
-  document.getElementById('btime').textContent = label + ' ET';
-  const b = document.getElementById('booking');
-  b.classList.add('on');
-  b.scrollIntoView({behavior:'smooth',block:'nearest'});
+  renderSlots(selDate);
+  // Small delay then show form
+  setTimeout(() => {
+    document.getElementById('right-panel').style.display = 'none';
+    const fp = document.getElementById('form-panel');
+    fp.classList.add('on');
+    document.getElementById('form-time-label').textContent = `${dateLabel} · ${timeRange} ET · ${dur} min`;
+  }, 180);
+}
+
+function showCalendar() {
+  document.getElementById('form-panel').classList.remove('on');
+  document.getElementById('right-panel').style.display = '';
 }
 
 async function doBook() {
   const name = document.getElementById('gname').value.trim();
   const email = document.getElementById('gemail').value.trim();
-  if (!name || !email) { document.getElementById('gname').focus(); return; }
-  const btn = document.querySelector('.book-btn');
-  btn.disabled = true; btn.textContent = 'Sending…';
-  await new Promise(r => setTimeout(r, 1000));
-  document.getElementById('booking').classList.remove('on');
-  const c = document.getElementById('confirm');
-  c.classList.add('on');
-  const dur = document.getElementById('dur').value;
-  document.getElementById('confirm-sub').innerHTML =
-    `<strong>${name}</strong>, your request for<br><strong>${document.getElementById('btime').textContent}</strong><br>(${dur} min) has been sent to Dory.<br><br>She'll confirm at <strong>${email}</strong> shortly.`;
-  c.scrollIntoView({behavior:'smooth'});
+  if (!name || !email) {
+    document.getElementById(name ? 'gemail' : 'gname').focus();
+    return;
+  }
+  const btn = document.getElementById('book-btn');
+  btn.disabled = true; btn.textContent = 'Confirming…';
+  await new Promise(r => setTimeout(r, 900));
+
+  document.getElementById('form-panel').classList.remove('on');
+  const cp = document.getElementById('confirm-panel');
+  cp.classList.add('on');
+  const timeLabel = document.getElementById('form-time-label').textContent;
+  document.getElementById('confirm-detail').innerHTML =
+    `<strong>${name}</strong><br>${timeLabel}<br><br>A confirmation will be sent to<br><strong>${email}</strong>`;
 }
 
-render();
+// ── Init ──────────────────────────────────────────────────────────────
+renderCal();
 </script>
 </body>
 </html>
