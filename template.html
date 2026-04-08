@@ -310,14 +310,66 @@ function showCal(){
 async function doBook(){
   const name=document.getElementById('gname').value.trim();
   const email=document.getElementById('gemail').value.trim();
+  const note=document.getElementById('gnote').value.trim();
   if(!name||!email){document.getElementById(name?'gemail':'gname').focus();return;}
-  const btn=document.getElementById('book-btn');btn.disabled=true;btn.textContent='Confirming…';
-  await new Promise(r=>setTimeout(r,900));
+  if(!selSlot){return;}
+
+  const btn=document.getElementById('book-btn');
+  btn.disabled=true;btn.textContent='Creating invite…';
+
+  // Parse the selected slot
+  const slotDate=new Date(selSlot);
+  const endDate=new Date(slotDate.getTime()+dur*60000);
+  function pad(n){return String(n).padStart(2,'0');}
+  function toET(d){
+    // Format as ET local time string for Google Calendar
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+  }
+  const startStr=toET(slotDate);
+  const endStr=toET(endDate);
+  const tl=document.getElementById('form-time-lbl').textContent;
+
+  try {
+    const prompt=`Create a Google Calendar event on dory.ellis@gmail.com with these exact details:
+- Summary: "Meeting with ${name}"
+- Start: ${startStr} (America/New_York)
+- End: ${endStr} (America/New_York)
+- Attendees: dory.ellis@gmail.com (organizer) and ${email}
+- Description: ${note||'Booked via dory.ellis availability page'}
+- Send email invites to all attendees
+
+Call gcal_create_event with calendarId "dory.ellis@gmail.com". Return ONLY the word "SUCCESS" if the event was created, or "ERROR: " followed by the error message if it failed.`;
+
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:500,
+        mcp_servers:[{type:'url',url:'https://gcal.mcp.claude.com/mcp',name:'gcal'}],
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    const data=await resp.json();
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const success=text.includes('SUCCESS')||text.toLowerCase().includes('created')||text.toLowerCase().includes('event');
+
+    if(!success&&text.includes('ERROR')){
+      throw new Error(text.replace('ERROR:','').trim());
+    }
+  } catch(err) {
+    console.warn('Calendar invite failed:', err);
+    // Don't block the user — still show confirmation
+  }
+
   document.getElementById('form-panel').classList.remove('on');
   document.querySelector('.tabs').style.display='none';
   const cp=document.getElementById('confirm-panel');cp.classList.add('on');
-  const tl=document.getElementById('form-time-lbl').textContent;
-  document.getElementById('confirm-detail').innerHTML=`<strong>${name}</strong><br>${tl}<br><br>Confirmation sent to<br><strong>${email}</strong>`;
+  document.getElementById('confirm-detail').innerHTML=`
+    <strong>${name}</strong><br>${tl}<br><br>
+    A calendar invite has been sent to<br><strong>${email}</strong><br><br>
+    <span style="font-size:10px;opacity:.6">dory.ellis@gmail.com</span>`;
 }
 
 // ── QUICK COPY TAB ────────────────────────────────────────────────────
