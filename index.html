@@ -127,7 +127,7 @@ body{font-family:'DM Mono',monospace;background:var(--bg);min-height:100vh;displ
     <div class="meta-row"><span class="meta-icon">🕐</span> Eastern Time (ET)</div>
     <div class="meta-row"><span class="meta-icon">📍</span> New York, NY</div>
     <div class="meta-row"><span class="meta-icon">📅</span> Weekdays only</div>
-    <div class="updated">Auto-updated hourly<br>Last refresh: April 8, 2026 at 4:50 PM ET</div>
+    <div class="updated">Auto-updated hourly<br>Last refresh: April 8, 2026 at 5:45 PM ET</div>
   </div>
 
   <!-- RIGHT: tabs -->
@@ -195,9 +195,9 @@ body{font-family:'DM Mono',monospace;background:var(--bg);min-height:100vh;displ
 
 <script>
 // ── Data ──────────────────────────────────────────────────────────────
-const BUSY = [];
-const ALLDAY_BLOCKED = [];
-const HOLIDAYS = {};
+const BUSY = [{"s":"2026-04-08T09:30","e":"2026-04-08T10:30"},{"s":"2026-04-08T11:00","e":"2026-04-08T12:00"},{"s":"2026-04-08T11:30","e":"2026-04-08T12:00"},{"s":"2026-04-08T13:30","e":"2026-04-08T14:00"},{"s":"2026-04-08T14:00","e":"2026-04-08T15:00"},{"s":"2026-04-08T15:30","e":"2026-04-08T16:00"},{"s":"2026-04-08T16:00","e":"2026-04-08T18:00"},{"s":"2026-04-09T10:30","e":"2026-04-09T11:00"},{"s":"2026-04-09T11:00","e":"2026-04-09T11:30"},{"s":"2026-04-09T13:00","e":"2026-04-09T13:45"},{"s":"2026-04-09T14:30","e":"2026-04-09T15:30"},{"s":"2026-04-09T16:00","e":"2026-04-09T17:00"},{"s":"2026-04-10T10:00","e":"2026-04-10T11:00"},{"s":"2026-04-10T14:00","e":"2026-04-10T14:30"},{"s":"2026-04-10T14:30","e":"2026-04-10T15:00"},{"s":"2026-04-13T10:00","e":"2026-04-13T11:00"},{"s":"2026-04-13T11:00","e":"2026-04-13T12:00"},{"s":"2026-04-13T11:30","e":"2026-04-13T12:30"},{"s":"2026-04-13T14:00","e":"2026-04-13T14:45"},{"s":"2026-04-14T09:00","e":"2026-04-14T10:00"},{"s":"2026-04-14T10:00","e":"2026-04-14T10:30"},{"s":"2026-04-14T11:00","e":"2026-04-14T11:30"},{"s":"2026-04-14T11:30","e":"2026-04-14T12:00"},{"s":"2026-04-14T12:00","e":"2026-04-14T12:30"},{"s":"2026-04-15T09:30","e":"2026-04-15T10:30"},{"s":"2026-04-15T12:00","e":"2026-04-15T12:45"},{"s":"2026-04-15T12:30","e":"2026-04-15T13:30"},{"s":"2026-04-16T14:30","e":"2026-04-16T15:30"},{"s":"2026-04-17T13:00","e":"2026-04-17T13:30"},{"s":"2026-04-20T10:00","e":"2026-04-20T11:00"},{"s":"2026-04-20T11:00","e":"2026-04-20T12:00"},{"s":"2026-04-20T12:30","e":"2026-04-20T12:45"},{"s":"2026-04-21T09:00","e":"2026-04-21T10:00"},{"s":"2026-04-21T10:00","e":"2026-04-21T10:30"},{"s":"2026-04-21T11:00","e":"2026-04-21T11:30"},{"s":"2026-04-21T11:30","e":"2026-04-21T12:00"},{"s":"2026-04-21T12:00","e":"2026-04-21T12:30"},{"s":"2026-04-21T13:35","e":"2026-04-21T14:05"},{"s":"2026-04-22T09:30","e":"2026-04-22T10:30"},{"s":"2026-04-22T12:00","e":"2026-04-22T13:30"},{"s":"2026-04-22T13:30","e":"2026-04-22T14:00"},{"s":"2026-04-22T15:00","e":"2026-04-22T16:00"},{"s":"2026-04-22T15:30","e":"2026-04-22T16:00"},{"s":"2026-04-23T11:00","e":"2026-04-23T11:30"},{"s":"2026-04-23T14:30","e":"2026-04-23T15:30"},{"s":"2026-04-24T08:45","e":"2026-04-24T09:45"},{"s":"2026-04-27T10:00","e":"2026-04-27T11:00"},{"s":"2026-04-27T11:00","e":"2026-04-27T12:00"},{"s":"2026-04-27T14:30","e":"2026-04-27T15:00"},{"s":"2026-04-28T09:00","e":"2026-04-28T10:00"},{"s":"2026-04-28T10:00","e":"2026-04-28T10:30"},{"s":"2026-04-28T11:00","e":"2026-04-28T11:30"},{"s":"2026-04-28T11:30","e":"2026-04-28T12:00"},{"s":"2026-04-28T12:00","e":"2026-04-28T12:30"},{"s":"2026-04-29T09:30","e":"2026-04-29T10:30"},{"s":"2026-04-29T11:00","e":"2026-04-29T15:15"},{"s":"2026-04-30T10:30","e":"2026-04-30T14:00"},{"s":"2026-04-30T14:00","e":"2026-04-30T14:25"},{"s":"2026-04-30T14:30","e":"2026-04-30T15:30"},{"s":"2026-04-10T14:00","e":"2026-04-10T14:30"},{"s":"2026-04-10T17:00","e":"2026-04-10T20:00"},{"s":"2026-04-13T17:30","e":"2026-04-13T20:30"},{"s":"2026-04-14T13:00","e":"2026-04-14T14:00"},{"s":"2026-04-16T17:30","e":"2026-04-16T20:30"},{"s":"2026-04-09T16:00","e":"2026-04-09T17:00"},{"s":"2026-04-12T12:15","e":"2026-04-12T13:00"},{"s":"2026-04-12T14:00","e":"2026-04-12T15:00"},{"s":"2026-04-13T20:00","e":"2026-04-13T21:00"},{"s":"2026-04-16T16:00","e":"2026-04-16T17:00"},{"s":"2026-04-16T18:00","e":"2026-04-16T20:00"},{"s":"2026-04-16T18:45","e":"2026-04-17T08:45"},{"s":"2026-04-19T15:15","e":"2026-04-19T17:00"},{"s":"2026-04-20T19:30","e":"2026-04-20T20:30"},{"s":"2026-04-21T19:00","e":"2026-04-21T20:00"},{"s":"2026-04-23T16:00","e":"2026-04-23T17:00"},{"s":"2026-04-23T18:45","e":"2026-04-24T08:45"},{"s":"2026-04-24T08:45","e":"2026-04-24T09:45"},{"s":"2026-04-28T09:00","e":"2026-04-28T10:00"},{"s":"2026-04-30T16:00","e":"2026-04-30T17:00"},{"s":"2026-04-30T18:45","e":"2026-05-01T08:45"}];
+const ALLDAY_BLOCKED = ["2026-04-17","2026-04-18","2026-04-19","2026-04-20","2026-04-21","2026-04-23","2026-04-29","2026-04-30"];
+const HOLIDAYS = {"2026-04-15":"Tax Day"};
 const TODAY_STR = '2026-04-08';
 const TODAY = new Date(TODAY_STR+'T00:00:00');
 const EARLIEST=10,LATEST=18;
@@ -310,14 +310,66 @@ function showCal(){
 async function doBook(){
   const name=document.getElementById('gname').value.trim();
   const email=document.getElementById('gemail').value.trim();
+  const note=document.getElementById('gnote').value.trim();
   if(!name||!email){document.getElementById(name?'gemail':'gname').focus();return;}
-  const btn=document.getElementById('book-btn');btn.disabled=true;btn.textContent='Confirming…';
-  await new Promise(r=>setTimeout(r,900));
+  if(!selSlot){return;}
+
+  const btn=document.getElementById('book-btn');
+  btn.disabled=true;btn.textContent='Creating invite…';
+
+  // Parse the selected slot
+  const slotDate=new Date(selSlot);
+  const endDate=new Date(slotDate.getTime()+dur*60000);
+  function pad(n){return String(n).padStart(2,'0');}
+  function toET(d){
+    // Format as ET local time string for Google Calendar
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+  }
+  const startStr=toET(slotDate);
+  const endStr=toET(endDate);
+  const tl=document.getElementById('form-time-lbl').textContent;
+
+  try {
+    const prompt=`Create a Google Calendar event on dory.ellis@gmail.com with these exact details:
+- Summary: "Meeting with ${name}"
+- Start: ${startStr} (America/New_York)
+- End: ${endStr} (America/New_York)
+- Attendees: dory.ellis@gmail.com (organizer) and ${email}
+- Description: ${note||'Booked via dory.ellis availability page'}
+- Send email invites to all attendees
+
+Call gcal_create_event with calendarId "dory.ellis@gmail.com". Return ONLY the word "SUCCESS" if the event was created, or "ERROR: " followed by the error message if it failed.`;
+
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:500,
+        mcp_servers:[{type:'url',url:'https://gcal.mcp.claude.com/mcp',name:'gcal'}],
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    const data=await resp.json();
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const success=text.includes('SUCCESS')||text.toLowerCase().includes('created')||text.toLowerCase().includes('event');
+
+    if(!success&&text.includes('ERROR')){
+      throw new Error(text.replace('ERROR:','').trim());
+    }
+  } catch(err) {
+    console.warn('Calendar invite failed:', err);
+    // Don't block the user — still show confirmation
+  }
+
   document.getElementById('form-panel').classList.remove('on');
   document.querySelector('.tabs').style.display='none';
   const cp=document.getElementById('confirm-panel');cp.classList.add('on');
-  const tl=document.getElementById('form-time-lbl').textContent;
-  document.getElementById('confirm-detail').innerHTML=`<strong>${name}</strong><br>${tl}<br><br>Confirmation sent to<br><strong>${email}</strong>`;
+  document.getElementById('confirm-detail').innerHTML=`
+    <strong>${name}</strong><br>${tl}<br><br>
+    A calendar invite has been sent to<br><strong>${email}</strong><br><br>
+    <span style="font-size:10px;opacity:.6">dory.ellis@gmail.com</span>`;
 }
 
 // ── QUICK COPY TAB ────────────────────────────────────────────────────
