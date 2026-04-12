@@ -74,8 +74,8 @@ def fetch_all_events(service, cal_id, time_min, time_max):
 
 
 def build_busy_and_allday(service, today, end_date):
-    time_min = today.isoformat() + "T00:00:00"
-    time_max = end_date.isoformat() + "T23:59:59"
+    time_min = today.isoformat() + "T00:00:00Z"
+    time_max = end_date.isoformat() + "T23:59:59Z"
 
     busy   = []  # list of {s, e} strings
     allday = set()
@@ -130,8 +130,8 @@ def build_busy_and_allday(service, today, end_date):
 
 def get_holidays(service, today, end_date):
     holidays = {}
-    time_min = today.isoformat() + "T00:00:00"
-    time_max = end_date.isoformat() + "T23:59:59"
+    time_min = today.isoformat() + "T00:00:00Z"
+    time_max = end_date.isoformat() + "T23:59:59Z"
     events = fetch_all_events(service, HOLIDAY_CAL, time_min, time_max)
     for ev in events:
         if ev.get("start", {}).get("date"):
