@@ -127,7 +127,7 @@ body{font-family:'DM Mono',monospace;background:var(--bg);min-height:100vh;displ
     <div class="meta-row"><span class="meta-icon">🕐</span> Eastern Time (ET)</div>
     <div class="meta-row"><span class="meta-icon">📍</span> New York, NY</div>
     <div class="meta-row"><span class="meta-icon">📅</span> Weekdays only</div>
-    <div class="updated">Auto-updated hourly<br>Last refresh: April 12, 2026 at 9:00 PM ET</div>
+    <div class="updated">Auto-updated hourly<br>Last refresh: April 12, 2026</div>
   </div>
 
   <!-- RIGHT: tabs -->
@@ -315,61 +315,46 @@ async function doBook(){
   if(!selSlot){return;}
 
   const btn=document.getElementById('book-btn');
-  btn.disabled=true;btn.textContent='Creating invite…';
+  btn.disabled=true;btn.textContent='Opening calendar…';
 
-  // Parse the selected slot
+  // Build Google Calendar event URL (works for anyone, no auth needed)
   const slotDate=new Date(selSlot);
   const endDate=new Date(slotDate.getTime()+dur*60000);
   function pad(n){return String(n).padStart(2,'0');}
-  function toET(d){
-    // Format as ET local time string for Google Calendar
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+  // Google Calendar needs UTC format: 20260414T140000Z
+  function toGCal(d){
+    // Convert ET to UTC (ET = UTC-4 during DST)
+    const utc=new Date(d.getTime()+(d.getTimezoneOffset()*60000));
+    return utc.getFullYear()+
+      pad(utc.getMonth()+1)+
+      pad(utc.getDate())+'T'+
+      pad(utc.getHours())+
+      pad(utc.getMinutes())+'00Z';
   }
-  const startStr=toET(slotDate);
-  const endStr=toET(endDate);
+  const startGCal=toGCal(slotDate);
+  const endGCal=toGCal(endDate);
   const tl=document.getElementById('form-time-lbl').textContent;
+  const desc=encodeURIComponent((note||'Booking request via dory.ellisgarfinkle.com')+'
 
-  try {
-    const prompt=`Create a Google Calendar event on dory.ellis@gmail.com with these exact details:
-- Summary: "Meeting with ${name}"
-- Start: ${startStr} (America/New_York)
-- End: ${endStr} (America/New_York)
-- Attendees: dory.ellis@gmail.com (organizer) and ${email}
-- Description: ${note||'Booked via dory.ellis availability page'}
-- Send email invites to all attendees
+Attending: dory.ellis@gmail.com, '+email);
+  const title=encodeURIComponent('Meeting with Dory Ellis Garfinkle');
+  const guests=encodeURIComponent('dory.ellis@gmail.com,'+email);
 
-Call gcal_create_event with calendarId "dory.ellis@gmail.com". Return ONLY the word "SUCCESS" if the event was created, or "ERROR: " followed by the error message if it failed.`;
+  // Open Google Calendar create event with pre-filled details + Google Meet
+  const gcalUrl=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startGCal}/${endGCal}&details=${desc}&add=${guests}&sf=true&output=xml`;
+  window.open(gcalUrl,'_blank');
 
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:500,
-        mcp_servers:[{type:'url',url:'https://gcal.mcp.claude.com/mcp',name:'gcal'}],
-        messages:[{role:'user',content:prompt}]
-      })
-    });
-
-    const data=await resp.json();
-    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    const success=text.includes('SUCCESS')||text.toLowerCase().includes('created')||text.toLowerCase().includes('event');
-
-    if(!success&&text.includes('ERROR')){
-      throw new Error(text.replace('ERROR:','').trim());
-    }
-  } catch(err) {
-    console.warn('Calendar invite failed:', err);
-    // Don't block the user — still show confirmation
-  }
-
-  document.getElementById('form-panel').classList.remove('on');
-  document.querySelector('.tabs').style.display='none';
-  const cp=document.getElementById('confirm-panel');cp.classList.add('on');
-  document.getElementById('confirm-detail').innerHTML=`
-    <strong>${name}</strong><br>${tl}<br><br>
-    A calendar invite has been sent to<br><strong>${email}</strong><br><br>
-    <span style="font-size:10px;opacity:.6">dory.ellis@gmail.com</span>`;
+  // Show confirmation
+  setTimeout(()=>{
+    document.getElementById('form-panel').classList.remove('on');
+    document.querySelector('.tabs').style.display='none';
+    const cp=document.getElementById('confirm-panel');cp.classList.add('on');
+    document.getElementById('confirm-detail').innerHTML=`
+      <strong>${name}</strong><br>${tl}<br><br>
+      A Google Calendar invite window has opened.<br>
+      Click <strong>Save</strong> to send the invite to<br>
+      <strong>${email}</strong> and <strong>dory.ellis@gmail.com</strong>.`;
+  },400);
 }
 
 // ── QUICK COPY TAB ────────────────────────────────────────────────────
