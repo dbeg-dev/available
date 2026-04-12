@@ -54,4 +54,10 @@ jobs:
           git config user.name  "dory-bot"
           git config user.email "dory.ellis@gmail.com"
           git add index.html
-          git diff --cached --quiet || (git commit -m "Auto-refresh: $(date -u '+%Y-%m-%d %H:%M UTC')" && git push)
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-refresh: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git pull --rebase origin main
+            git push
+          fi
