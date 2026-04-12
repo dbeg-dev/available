@@ -38,10 +38,11 @@ CALENDARS = [
 ]
 HOLIDAY_CAL    = "en.usa#holiday@group.v.calendar.google.com"
 CHIEF_KEYWORDS = ["13 e 19", "flatiron district clubhouse", "chief"]
+GANZ_KEYWORDS  = ["ganz"]
 TRAVEL_BUFFER  = timedelta(minutes=30)
 EARLIEST_HOUR  = 10
-LATEST_HOUR    = 18
-DAYS_AHEAD     = 28
+LATEST_HOUR    = 17
+DAYS_AHEAD     = 142
 
 
 def parse_et(dt_str):
@@ -117,6 +118,11 @@ def build_busy_and_allday(service, today, end_date):
                 # Apply Chief/Flatiron travel buffer
                 loc = (ev.get("location") or "").lower()
                 if any(k in loc for k in CHIEF_KEYWORDS):
+                    s -= TRAVEL_BUFFER
+                    e += TRAVEL_BUFFER
+
+                # Ganz events: add 30-min buffer each side
+                if any(k in summ.lower() for k in GANZ_KEYWORDS):
                     s -= TRAVEL_BUFFER
                     e += TRAVEL_BUFFER
 
