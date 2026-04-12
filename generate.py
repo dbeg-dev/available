@@ -1,28 +1,20 @@
 #!/usr/bin/env python3
 """
 Hourly booking page generator.
-Uses Google Calendar API directly with OAuth2 credentials.
-
-Required env vars (stored as GitHub Secrets):
-  ANTHROPIC_API_KEY       - your Anthropic API key (for future AI features)
-  GOOGLE_CREDENTIALS_JSON - contents of credentials.json from Google Cloud
-  GOOGLE_TOKEN_JSON       - contents of token.json from local OAuth flow
+Uses events().list() on each calendar — proven to work with readonly scope.
+Applies freebusy logic: any non-transparent timed event blocks that slot.
 """
 
 import os, json, re, sys
 from datetime import datetime, timedelta, date
 
-# ── Google Calendar via API ────────────────────────────────────────────
 def get_gcal_service():
     from google.oauth2.credentials import Credentials
     from google.auth.transport.requests import Request
     from googleapiclient.discovery import build
 
-    creds_json  = os.environ["GOOGLE_CREDENTIALS_JSON"]
-    token_json  = os.environ["GOOGLE_TOKEN_JSON"]
-
-    creds_data  = json.loads(creds_json)
-    token_data  = json.loads(token_json)
+    creds_data = json.loads(os.environ["GOOGLE_CREDENTIALS_JSON"])
+    token_data  = json.loads(os.environ["GOOGLE_TOKEN_JSON"])
 
     creds = Credentials(
         token=token_data.get("token"),
@@ -32,89 +24,83 @@ def get_gcal_service():
         client_secret=creds_data["installed"]["client_secret"],
         scopes=token_data.get("scopes", ["https://www.googleapis.com/auth/calendar.readonly"]),
     )
-
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
-
     return build("calendar", "v3", credentials=creds)
 
-CALENDARS = {
-    "primary": "dory.ellis@gmail.com",
-    "dm":      "michaelsgarfinkle@gmail.com",
-    "ec":      "crk94q56n8o7fkj12h8880valiieinss@import.calendar.google.com",
-    "holiday": "en.usa#holiday@group.v.calendar.google.com",
-    "family":  "family03093285931532505689@group.calendar.google.com",
-    "work":    "cdiog0aatmbjq9l3tkefnif53a3h5dno@import.calendar.google.com",
-}
 
-CHIEF_KEYWORDS = ["19th st", "flatiron", "chief", "13 e 19"]
+CALENDARS = [
+    "dory.ellis@gmail.com",
+    "michaelsgarfinkle@gmail.com",
+    "crk94q56n8o7fkj12h8880valiieinss@import.calendar.google.com",
+    "family03093285931532505689@group.calendar.google.com",
+    "cdiog0aatmbjq9l3tkefnif53a3h5dno@import.calendar.google.com",
+]
+HOLIDAY_CAL    = "en.usa#holiday@group.v.calendar.google.com"
+CHIEF_KEYWORDS = ["13 e 19", "flatiron district clubhouse", "chief"]
 TRAVEL_BUFFER  = timedelta(minutes=30)
 EARLIEST_HOUR  = 10
 LATEST_HOUR    = 18
 DAYS_AHEAD     = 28
 
 
-def fetch_events(service, cal_id, time_min, time_max):
-    events = []
-    page_token = None
+def parse_et(dt_str):
+    """Parse a dateTime string, stripping UTC offset, treating result as ET local."""
+    return datetime.fromisoformat(re.sub(r"[+-]\d{2}:\d{2}$|Z$", "", dt_str))
+
+
+def fetch_all_events(service, cal_id, time_min, time_max):
+    events, page_token = [], None
     while True:
-        result = service.events().list(
-            calendarId=cal_id,
-            timeMin=time_min,
-            timeMax=time_max,
-            maxResults=250,
-            singleEvents=True,
-            orderBy="startTime",
-            timeZone="America/New_York",
-            pageToken=page_token,
-        ).execute()
-        events.extend(result.get("items", []))
-        page_token = result.get("nextPageToken")
+        try:
+            r = service.events().list(
+                calendarId=cal_id,
+                timeMin=time_min,
+                timeMax=time_max,
+                maxResults=250,
+                singleEvents=True,
+                orderBy="startTime",
+                timeZone="America/New_York",
+                pageToken=page_token,
+            ).execute()
+        except Exception as e:
+            print(f"  ⚠ Could not fetch {cal_id}: {e}")
+            break
+        events.extend(r.get("items", []))
+        page_token = r.get("nextPageToken")
         if not page_token:
             break
     return events
 
 
-def is_chief(ev):
-    loc = (ev.get("location") or "").lower()
-    summary = (ev.get("summary") or "").lower()
-    return any(k in loc or k in summary for k in CHIEF_KEYWORDS)
-
-
-def build_busy_blocks(service, today, end_date):
+def build_busy_and_allday(service, today, end_date):
     time_min = today.isoformat() + "T00:00:00"
     time_max = end_date.isoformat() + "T23:59:59"
 
-    busy   = []   # {s, e} datetime pairs
+    busy   = []  # list of {s, e} strings
     allday = set()
-    holidays = {}
 
-    for key, cal_id in CALENDARS.items():
-        try:
-            events = fetch_events(service, cal_id, time_min, time_max)
-        except Exception as e:
-            print(f"  Warning: could not fetch {key}: {e}")
-            continue
+    for cal_id in CALENDARS:
+        events = fetch_all_events(service, cal_id, time_min, time_max)
+        print(f"  {cal_id[:40]}: {len(events)} events")
 
         for ev in events:
             transparency = ev.get("transparency", "")
             summary = (ev.get("summary") or "").strip()
+            status  = ev.get("status", "confirmed")
 
-            # Skip free/transparent events
+            if status == "cancelled":
+                continue
             if transparency == "transparent":
                 continue
             if summary.lower() in ("free", ""):
                 continue
 
             start_info = ev.get("start", {})
-            end_info   = ev.get("end", {})
+            end_info   = ev.get("end",   {})
 
-            # All-day events
+            # All-day event
             if start_info.get("date"):
-                if key == "holiday":
-                    holidays[start_info["date"]] = summary
-                    continue
-                # Mark each date in the all-day range as blocked
                 s = date.fromisoformat(start_info["date"])
                 e = date.fromisoformat(end_info["date"])
                 d = s
@@ -123,34 +109,43 @@ def build_busy_blocks(service, today, end_date):
                     d += timedelta(days=1)
                 continue
 
-            # Timed events
+            # Timed event
             if start_info.get("dateTime"):
-                def parse_dt(s):
-                    # Remove offset, parse as naive
-                    s = re.sub(r"[+-]\d{2}:\d{2}$", "", s)
-                    return datetime.fromisoformat(s)
+                s = parse_et(start_info["dateTime"])
+                e = parse_et(end_info["dateTime"])
 
-                ev_s = parse_dt(start_info["dateTime"])
-                ev_e = parse_dt(end_info["dateTime"])
+                # Apply Chief/Flatiron travel buffer
+                loc = (ev.get("location") or "").lower()
+                if any(k in loc for k in CHIEF_KEYWORDS):
+                    s -= TRAVEL_BUFFER
+                    e += TRAVEL_BUFFER
 
-                if is_chief(ev):
-                    ev_s -= TRAVEL_BUFFER
-                    ev_e += TRAVEL_BUFFER
+                busy.append({
+                    "s": s.strftime("%Y-%m-%dT%H:%M"),
+                    "e": e.strftime("%Y-%m-%dT%H:%M"),
+                })
 
-                busy.append({"s": ev_s.strftime("%Y-%m-%dT%H:%M"),
-                             "e": ev_e.strftime("%Y-%m-%dT%H:%M")})
+    return busy, sorted(allday)
 
-    return busy, sorted(allday), holidays
+
+def get_holidays(service, today, end_date):
+    holidays = {}
+    time_min = today.isoformat() + "T00:00:00"
+    time_max = end_date.isoformat() + "T23:59:59"
+    events = fetch_all_events(service, HOLIDAY_CAL, time_min, time_max)
+    for ev in events:
+        if ev.get("start", {}).get("date"):
+            holidays[ev["start"]["date"]] = ev.get("summary", "")
+    return holidays
 
 
 def render_html(busy, allday, holidays, today):
-    today_str = today.isoformat()
-    updated   = datetime.now().strftime("%B %-d, %Y at %-I:%M %p ET")
+    today_str   = today.isoformat()
+    updated     = datetime.now().strftime("%B %-d, %Y at %-I:%M %p ET")
     busy_js     = json.dumps(busy,     separators=(",", ":"))
     allday_js   = json.dumps(allday,   separators=(",", ":"))
     holidays_js = json.dumps(holidays, separators=(",", ":"))
 
-    # Read template and inject data
     template_path = os.path.join(os.path.dirname(__file__), "template.html")
     with open(template_path) as f:
         html = f.read()
@@ -163,22 +158,33 @@ def render_html(busy, allday, holidays, today):
     html = html.replace("__EARLIEST__",    str(EARLIEST_HOUR))
     html = html.replace("__LATEST__",      str(LATEST_HOUR))
 
+    # Verify all placeholders filled
+    for p in ["__BUSY_JS__", "__ALLDAY_JS__", "__HOLIDAYS_JS__", "__TODAY_STR__", "__UPDATED__"]:
+        if p in html:
+            print(f"  ⚠ Placeholder not filled: {p}")
+
     return html
 
 
 if __name__ == "__main__":
     print("Connecting to Google Calendar...")
-    service = get_gcal_service()
-
+    service  = get_gcal_service()
     today    = date.today()
     end_date = today + timedelta(days=DAYS_AHEAD)
-    print(f"Fetching events {today} → {end_date}")
+    print(f"Window: {today} → {end_date}")
 
-    busy, allday, holidays = build_busy_blocks(service, today, end_date)
-    print(f"  {len(busy)} busy blocks, {len(allday)} all-day blocks, {len(holidays)} holidays")
+    print("Fetching events from all calendars...")
+    busy, allday = build_busy_and_allday(service, today, end_date)
+    print(f"Total: {len(busy)} busy blocks, {len(allday)} all-day dates")
+
+    if len(busy) == 0:
+        print("⚠ WARNING: zero busy blocks — something may be wrong with auth or calendar access")
+
+    print("Fetching holidays...")
+    holidays = get_holidays(service, today, end_date)
+    print(f"  {len(holidays)} holidays")
 
     html = render_html(busy, allday, holidays, today)
-
     with open("index.html", "w") as f:
         f.write(html)
-    print(f"Written index.html ({len(html):,} bytes)")
+    print(f"✓ Written index.html ({len(html):,} bytes) with {len(busy)} busy blocks")
