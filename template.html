@@ -200,7 +200,7 @@ const ALLDAY_BLOCKED = __ALLDAY_JS__;
 const HOLIDAYS = __HOLIDAYS_JS__;
 const TODAY_STR = '__TODAY_STR__';
 const TODAY = new Date(TODAY_STR+'T00:00:00');
-const EARLIEST=__EARLIEST__,LATEST=18;
+const EARLIEST=__EARLIEST__,LATEST=__LATEST__;
 const MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DAYS_S=['Su','Mo','Tu','We','Th','Fr','Sa'];
@@ -223,7 +223,7 @@ function getSlots(ds){
     const s=new Date(ds+'T'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':00');
     const e=new Date(s.getTime()+dur*60000);
     if(e.getHours()>LATEST||(e.getHours()===LATEST&&e.getMinutes()>0))break;
-    if(s>TODAY&&!isBusy(s,e))slots.push(new Date(s));
+    if(s>=TODAY&&!isBusy(s,e))slots.push(new Date(s));
     m+=30;if(m>=60){h++;m=0;}
   }
   return slots;
@@ -257,7 +257,7 @@ function renderCal(){
   for(let d=1;d<=dim;d++){
     const ds=fmtDs(viewYear,viewMonth,d);
     const dt=new Date(ds+'T00:00:00');
-    const isPast=dt<=TODAY,isWknd=dt.getDay()===0||dt.getDay()===6;
+    const isPast=dt<TODAY,isWknd=dt.getDay()===0||dt.getDay()===6;
     const isToday=ds===TODAY_STR,isSel=ds===selDate;
     const avail=!isPast&&!isWknd&&hasSlots(ds);
     let cls='day-cell';
