@@ -190,6 +190,32 @@ if __name__ == "__main__":
     holidays = get_holidays(service, today, end_date)
     print(f"  {len(holidays)} holidays")
 
+    # If we got fewer than 200 blocks, merge with cached data as fallback
+    cached_busy, cached_allday = [], []
+    try:
+        import os
+        if os.path.exists("busy_data.json"):
+            with open("busy_data.json") as cf:
+                cached = json.load(cf)
+                cached_busy  = cached.get("busy", [])
+                cached_allday = cached.get("allday", [])
+            if len(busy) < 200 and len(cached_busy) > len(busy):
+                print(f"  ↩ Only {len(busy)} blocks fetched — merging with {len(cached_busy)} cached blocks")
+                # Merge: use fetched for recent 14 days, cached beyond that
+                from datetime import timedelta
+                cutoff = (today + timedelta(days=14)).isoformat()
+                fresh = [b for b in busy if b["s"][:10] <= cutoff]
+                old_cached = [b for b in cached_busy if b["s"][:10] > cutoff]
+                busy = fresh + old_cached
+                allday = sorted(set(cached_allday) | set(allday))
+                print(f"  ✓ Merged: {len(busy)} total blocks")
+    except Exception as ex:
+        print(f"  Warning: fallback merge failed: {ex}")
+
+    # Save the best data we have
+    with open("busy_data.json", "w") as f:
+        json.dump({"busy": busy, "allday": allday, "holidays": holidays}, f)
+
     html = render_html(busy, allday, holidays, today)
     with open("index.html", "w") as f:
         f.write(html)
