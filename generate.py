@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
 Hourly booking page generator.
-Uses events().list() on each calendar — proven to work with readonly scope.
-Applies freebusy logic: any non-transparent timed event blocks that slot.
+Fetches events from all calendars and applies smart filtering:
+- Skips transparent/free events
+- Skips events belonging to Michael, Ted, Graciela, kids etc.
+- Applies Chief/Flatiron +30min travel buffer
+- Applies Ganz +30min buffer
+- Respects transparency changes in real-time
 """
 
 import os, json, re, sys
@@ -44,9 +48,67 @@ EARLIEST_HOUR  = 10
 LATEST_HOUR    = 17
 DAYS_AHEAD     = 142
 
+# All-day events whose summaries indicate they are NOT Dory's constraint.
+# If the event summary contains any of these, skip it for all-day blocking.
+ALLDAY_SKIP_KEYWORDS = [
+    "graciela",          # nanny — Dory is free
+    "m in toronto",      # Michael traveling
+    "m in ",             # Michael traveling (generic)
+    "m: ",               # Michael's events
+    "m&w in",            # Michael + Wendy
+    "m presenting",      # Michael at conference
+    "ted in",            # Ted traveling
+    "ted out",           # Ted's plans
+    "wendy",             # Wendy/kids schedule
+    "kids",              # Kids schedule (transparent anyway but just in case)
+    "school",            # School schedule
+    "himare",            # Albania cities — Michael with kids
+    "lezhë",             # Albania
+    "theth",             # Albania
+    "tirana",            # Albania (Michael)
+    "holiday in",        # Michael family holidays
+    "awesome on",        # Michael's boat
+    "blood donation",    # Michael
+    "dr sarasohn",       # Michael's therapy (not Dory's constraint)
+    "block for kids",    # Kids overnight block (timed, handled separately)
+    "free press",        # Free Press events (transparent)
+]
+
+# All-day events that DO block Dory regardless of who organized them
+ALLDAY_KEEP_KEYWORDS = [
+    "lily and chad",
+    "nada",
+    "katz reunion",
+    "hudson overnight",
+    "dory",              # anything with "dory" in it is hers
+    "out",               # OUT days
+    "governors ball",
+    "rhinebeck",
+    "stay",              # hotel/airbnb stays that are hers
+    "paris",
+    "london",
+    "cannes",
+    "albania",
+]
+
+
+def should_skip_allday(summary):
+    """Return True if this all-day event should NOT block Dory's calendar."""
+    s = summary.lower().strip()
+    # Empty or "free" always skip
+    if s in ("free", ""):
+        return True
+    # If it matches a keep keyword, never skip
+    if any(k in s for k in ALLDAY_KEEP_KEYWORDS):
+        return False
+    # If it matches a skip keyword, skip it
+    if any(k in s for k in ALLDAY_SKIP_KEYWORDS):
+        return True
+    # Default: block (conservative — better to be busy than show false availability)
+    return False
+
 
 def parse_et(dt_str):
-    """Parse a dateTime string, stripping UTC offset, treating result as ET local."""
     return datetime.fromisoformat(re.sub(r"[+-]\d{2}:\d{2}$|Z$", "", dt_str))
 
 
@@ -78,17 +140,17 @@ def build_busy_and_allday(service, today, end_date):
     time_min = today.isoformat() + "T00:00:00Z"
     time_max = end_date.isoformat() + "T23:59:59Z"
 
-    busy   = []  # list of {s, e} strings
+    busy   = []
     allday = set()
 
     for cal_id in CALENDARS:
         events = fetch_all_events(service, cal_id, time_min, time_max)
-        print(f"  {cal_id[:40]}: {len(events)} events")
+        print(f"  {cal_id[:44]}: {len(events)} events")
 
         for ev in events:
             transparency = ev.get("transparency", "")
-            summary = (ev.get("summary") or "").strip()
-            status  = ev.get("status", "confirmed")
+            summary      = (ev.get("summary") or "").strip()
+            status       = ev.get("status", "confirmed")
 
             if status == "cancelled":
                 continue
@@ -100,29 +162,33 @@ def build_busy_and_allday(service, today, end_date):
             start_info = ev.get("start", {})
             end_info   = ev.get("end",   {})
 
-            # All-day event
+            # ── All-day event ────────────────────────────────────────
             if start_info.get("date"):
+                if should_skip_allday(summary):
+                    print(f"    SKIP all-day: {start_info['date']} [{summary}]")
+                    continue
                 s = date.fromisoformat(start_info["date"])
                 e = date.fromisoformat(end_info["date"])
                 d = s
                 while d < e:
                     allday.add(d.isoformat())
                     d += timedelta(days=1)
+                print(f"    BLOCK all-day: {start_info['date']}→{end_info['date']} [{summary}]")
                 continue
 
-            # Timed event
+            # ── Timed event ──────────────────────────────────────────
             if start_info.get("dateTime"):
                 s = parse_et(start_info["dateTime"])
                 e = parse_et(end_info["dateTime"])
 
-                # Apply Chief/Flatiron travel buffer
+                # Chief/Flatiron travel buffer
                 loc = (ev.get("location") or "").lower()
                 if any(k in loc for k in CHIEF_KEYWORDS):
                     s -= TRAVEL_BUFFER
                     e += TRAVEL_BUFFER
 
-                # Ganz events: add 30-min buffer each side
-                if any(k in summ.lower() for k in GANZ_KEYWORDS):
+                # Ganz buffer
+                if any(k in summary.lower() for k in GANZ_KEYWORDS):
                     s -= TRAVEL_BUFFER
                     e += TRAVEL_BUFFER
 
@@ -164,7 +230,6 @@ def render_html(busy, allday, holidays, today):
     html = html.replace("__EARLIEST__",    str(EARLIEST_HOUR))
     html = html.replace("__LATEST__",      str(LATEST_HOUR))
 
-    # Verify all placeholders filled
     for p in ["__BUSY_JS__", "__ALLDAY_JS__", "__HOLIDAYS_JS__", "__TODAY_STR__", "__UPDATED__"]:
         if p in html:
             print(f"  ⚠ Placeholder not filled: {p}")
@@ -184,39 +249,38 @@ if __name__ == "__main__":
     print(f"Total: {len(busy)} busy blocks, {len(allday)} all-day dates")
 
     if len(busy) == 0:
-        print("⚠ WARNING: zero busy blocks — something may be wrong with auth or calendar access")
+        print("⚠ WARNING: zero busy blocks — auth or calendar access issue")
 
     print("Fetching holidays...")
     holidays = get_holidays(service, today, end_date)
     print(f"  {len(holidays)} holidays")
 
-    # If we got fewer than 200 blocks, merge with cached data as fallback
-    cached_busy, cached_allday = [], []
+    # Fallback: if fetch is thin, merge with cached data for future months
     try:
-        import os
         if os.path.exists("busy_data.json"):
             with open("busy_data.json") as cf:
                 cached = json.load(cf)
-                cached_busy  = cached.get("busy", [])
-                cached_allday = cached.get("allday", [])
+            cached_busy   = cached.get("busy", [])
+            cached_allday = cached.get("allday", [])
             if len(busy) < 200 and len(cached_busy) > len(busy):
-                print(f"  ↩ Only {len(busy)} blocks fetched — merging with {len(cached_busy)} cached blocks")
-                # Merge: use fetched for recent 14 days, cached beyond that
-                from datetime import timedelta
+                print(f"  ↩ Thin fetch ({len(busy)}) — merging with {len(cached_busy)} cached blocks")
                 cutoff = (today + timedelta(days=14)).isoformat()
-                fresh = [b for b in busy if b["s"][:10] <= cutoff]
-                old_cached = [b for b in cached_busy if b["s"][:10] > cutoff]
-                busy = fresh + old_cached
-                allday = sorted(set(cached_allday) | set(allday))
-                print(f"  ✓ Merged: {len(busy)} total blocks")
+                fresh      = [b for b in busy        if b["s"][:10] <= cutoff]
+                old_cached = [b for b in cached_busy if b["s"][:10] >  cutoff]
+                busy   = fresh + old_cached
+                # For allday: use freshly-fetched for near term, cached for far future
+                fresh_allday  = {d for d in allday        if d <= cutoff}
+                old_allday    = {d for d in cached_allday if d >  cutoff}
+                allday = sorted(fresh_allday | old_allday)
+                print(f"  ✓ Merged: {len(busy)} busy, {len(allday)} allday")
     except Exception as ex:
         print(f"  Warning: fallback merge failed: {ex}")
 
-    # Save the best data we have
+    # Save best data
     with open("busy_data.json", "w") as f:
         json.dump({"busy": busy, "allday": allday, "holidays": holidays}, f)
 
     html = render_html(busy, allday, holidays, today)
     with open("index.html", "w") as f:
         f.write(html)
-    print(f"✓ Written index.html ({len(html):,} bytes) with {len(busy)} busy blocks")
+    print(f"✓ Written index.html ({len(html):,} bytes) — {len(busy)} busy, {len(allday)} allday")
