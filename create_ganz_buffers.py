@@ -27,7 +27,7 @@ def get_service():
         token_uri=creds_data["installed"]["token_uri"],
         client_id=creds_data["installed"]["client_id"],
         client_secret=creds_data["installed"]["client_secret"],
-        scopes=["https://www.googleapis.com/auth/calendar"],
+        scopes=["https://www.googleapis.com/auth/calendar"],  # needs write scope
     )
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
@@ -50,7 +50,12 @@ if __name__ == "__main__":
             "end":   {"dateTime": f"{d}T16:00:00", "timeZone": "America/New_York"},
             "transparency": "opaque",
         }
+        try:
         r = service.events().insert(calendarId="dory.ellis@gmail.com", body=event).execute()
+    except Exception as e:
+        print(f"  ✗ Failed {d}: {e}")
+        print("  → Token needs calendar write scope. Re-run oauth_setup.py to reauthorize.")
+        continue
         print(f"  ✓ {d} 3:30-4:00pm — id:{r['id'][:20]}")
         created += 1
 
