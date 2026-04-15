@@ -51,10 +51,8 @@ jobs:
           git config user.name  "dory-bot"
           git config user.email "dory.ellis@gmail.com"
           git add index.html busy_data.json
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "Auto-refresh: $(date -u '+%Y-%m-%d %H:%M UTC')"
-            git pull --rebase origin main
-            git push
-          fi
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Auto-refresh: $(date -u "+%Y-%m-%d %H:%M UTC")"
+          git fetch origin main
+          git rebase origin/main
+          git push
