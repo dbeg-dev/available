@@ -262,17 +262,19 @@ if __name__ == "__main__":
                 cached = json.load(cf)
             cached_busy   = cached.get("busy", [])
             cached_allday = cached.get("allday", [])
-            if len(busy) < 200 and len(cached_busy) > len(busy):
-                print(f"  ↩ Thin fetch ({len(busy)}) — merging with {len(cached_busy)} cached blocks")
-                cutoff = (today + timedelta(days=14)).isoformat()
-                fresh      = [b for b in busy        if b["s"][:10] <= cutoff]
-                old_cached = [b for b in cached_busy if b["s"][:10] >  cutoff]
-                busy   = fresh + old_cached
-                # For allday: use freshly-fetched for near term, cached for far future
-                fresh_allday  = {d for d in allday        if d <= cutoff}
-                old_allday    = {d for d in cached_allday if d >  cutoff}
-                allday = sorted(fresh_allday | old_allday)
-                print(f"  ✓ Merged: {len(busy)} busy, {len(allday)} allday")
+            # Always merge: fresh fetch covers near term, cached covers any manually-added blocks
+            print(f"  ↩ Merging fresh ({len(busy)}) with cached ({len(cached_busy)}) blocks")
+            cutoff = (today + timedelta(days=14)).isoformat()
+            fresh      = [b for b in busy        if b["s"][:10] <= cutoff]
+            old_cached = [b for b in cached_busy if b["s"][:10] >  cutoff]
+            # Also keep any manually-added near-term cached blocks not in the fresh fetch
+            fresh_dates = {b["s"][:10] for b in fresh}
+            extra_cached = [b for b in cached_busy if b["s"][:10] <= cutoff and b["s"][:10] not in fresh_dates]
+            busy   = fresh + extra_cached + old_cached
+            fresh_allday  = {d for d in allday        if d <= cutoff}
+            old_allday    = {d for d in cached_allday if d >  cutoff}
+            allday = sorted(fresh_allday | old_allday)
+            print(f"  ✓ Merged: {len(busy)} busy, {len(allday)} allday")
     except Exception as ex:
         print(f"  Warning: fallback merge failed: {ex}")
 
