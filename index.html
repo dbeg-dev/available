@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book time with Dory Ellis Garfinkle</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #14112b;
+  --navy2:   #1e1a3a;
+  --navy3:   #272250;
+  --border:  #2e2a50;
+  --lime:    #d4f50c;
+  --violet:  #8b6fd4;
+  --white:   #f0eef8;
+  --muted:   #7a75a0;
+  --faint:   #3a3560;
+  --green:   #2de08a;
+  --red:     #f05050;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+}
+
+/* NAV */
+.topnav {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.topnav-brand {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--navy);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--lime);
+  padding: 9px 18px;
+  border-radius: 2px;
+  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 2px 12px rgba(212,245,12,0.25);
+}
+.topnav-brand:hover { background: #bfe000; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(212,245,12,0.35); }
+.topnav-brand:active { transform: translateY(0); }
+.topnav-back {
+  font-weight: 400;
+  letter-spacing: 1px;
+  font-size: 10px;
+  opacity: 0.65;
+  padding-left: 8px;
+  border-left: 1px solid rgba(20,17,43,0.3);
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+}
+.status-dot.loading { background: #f5c518; animation: pulse 1s ease-in-out infinite; }
+.status-dot.error   { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* HERO */
+.hero {
+  padding: 44px 32px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.hero-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(32px, 5vw, 60px);
+  line-height: 0.95;
+  letter-spacing: -0.5px;
+  color: var(--white);
+}
+.hero-name em { font-style: italic; color: var(--violet); }
+.hero-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.hero-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+.hero-tagline {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--violet);
+  line-height: 1.5;
+  max-width: 240px;
+  text-align: right;
+}
+
+/* LAYOUT */
+.main {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  min-height: calc(100vh - 195px);
+}
+@media(max-width:780px){ .main { grid-template-columns: 1fr; } }
+
+/* SIDEBAR */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 28px 22px;
+}
+.sidebar-section { margin-bottom: 28px; }
+.section-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Duration */
+.dur-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.dur-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 9px 6px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  transition: all .12s;
+}
+.dur-btn:hover { border-color: var(--violet); color: var(--white); }
+.dur-btn.active {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+/* Details */
+.detail-list { display: flex; flex-direction: column; gap: 10px; }
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.detail-icon {
+  width: 20px; height: 20px;
+  background: var(--navy3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  flex-shrink: 0;
+  color: var(--lime);
+}
+
+/* Quick times */
+.quick-btn {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--lime);
+  border-radius: 2px;
+  color: var(--lime);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px;
+  cursor: pointer;
+  transition: all .12s;
+  margin-bottom: 10px;
+}
+.quick-btn:hover { background: var(--lime); color: var(--navy); }
+.quick-results {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 10px;
+  display: none;
+}
+.quick-results.show { display: block; }
+.quick-time-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--white);
+  gap: 8px;
+}
+.quick-time-item:last-child { border-bottom: none; }
+.qcopy-btn {
+  background: none;
+  border: 1px solid var(--lime);
+  border-radius: 2px;
+  color: var(--lime);
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 3px 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .1s;
+  text-transform: uppercase;
+}
+.qcopy-btn:hover { background: var(--lime); color: var(--navy); }
+.copied-flash {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--lime);
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity .2s;
+  margin-top: 6px;
+}
+.copied-flash.show { opacity: 1; }
+
+/* CALENDAR PANEL */
+.cal-panel { padding: 28px 28px 60px; }
+
+.cal-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.cal-nav {
+  width: 32px; height: 32px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .1s;
+}
+.cal-nav:hover { border-color: var(--lime); color: var(--lime); }
+.month-label {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  letter-spacing: -.3px;
+  color: var(--white);
+  flex: 1;
+}
+.month-label em { font-style: italic; color: var(--violet); }
+
+/* Month grid */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.dow-lbl {
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 0 10px;
+}
+.day-cell {
+  aspect-ratio: 1;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  border-radius: 2px;
+  cursor: default;
+  color: var(--faint);
+  position: relative;
+  transition: all .1s;
+}
+.day-cell.available {
+  color: var(--white);
+  cursor: pointer;
+  background: var(--navy2);
+  border: 1px solid var(--border);
+}
+.day-cell.available:hover { background: var(--navy3); border-color: var(--lime); color: var(--lime); }
+.day-cell.selected { background: var(--lime) !important; color: var(--navy) !important; border-color: var(--lime) !important; font-weight: 700; }
+.day-cell.today-ring { box-shadow: 0 0 0 1px var(--violet); }
+.today-dot {
+  position: absolute;
+  bottom: 4px; left: 50%;
+  transform: translateX(-50%);
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--violet);
+}
+.skel-day {
+  aspect-ratio: 1; min-height: 30px;
+  background: linear-gradient(90deg, var(--navy2) 25%, var(--navy3) 50%, var(--navy2) 75%);
+  background-size: 200% 100%;
+  border-radius: 2px;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* Time panel */
+.time-panel { display: none; animation: fadeUp .18s ease; }
+.time-panel.show { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.time-hd { margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+.time-hd-text {}
+.time-hd-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.time-hd-date {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--white);
+}
+.time-hd-date em { font-style: italic; color: var(--violet); }
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 6px;
+}
+.time-slot {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px 8px;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--white);
+  cursor: pointer;
+  transition: all .1s;
+}
+.time-slot:hover { border-color: var(--lime); color: var(--lime); background: var(--navy3); }
+.time-slot.selected { background: var(--lime); border-color: var(--lime); color: var(--navy); font-weight: 700; }
+.time-slot.busy { opacity: .2; cursor: not-allowed; text-decoration: line-through; }
+
+/* OVERLAY */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 9, 25, .88);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.overlay.show { display: flex; }
+.booking-card {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+.card-hd {
+  background: var(--navy3);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+}
+.card-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.card-time {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--white);
+}
+.card-time em { font-style: italic; color: var(--violet); }
+.card-body { padding: 22px 24px; }
+.form-field { margin-bottom: 14px; }
+.form-lbl {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 6px;
+}
+.form-inp {
+  width: 100%;
+  background: var(--navy);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 10px 12px;
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .12s;
+}
+.form-inp::placeholder { color: var(--faint); }
+.form-inp:focus { border-color: var(--violet); }
+.booking-btns { display: flex; gap: 8px; margin-top: 8px; }
+.btn-confirm {
+  flex: 1;
+  background: var(--lime);
+  border: none;
+  border-radius: 2px;
+  color: var(--navy);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 12px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.btn-confirm:hover { background: #bfe000; }
+.btn-cancel {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all .1s;
+}
+.btn-cancel:hover { border-color: var(--muted); color: var(--white); }
+
+/* SUCCESS */
+.success-inner {
+  padding: 40px 24px;
+  text-align: center;
+}
+.success-glyph { font-size: 28px; color: var(--lime); margin-bottom: 16px; }
+.success-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--white);
+  margin-bottom: 10px;
+}
+.success-title em { font-style: italic; color: var(--violet); }
+.success-msg { font-size: 13px; color: var(--muted); line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <a href="https://dory.rocks" class="topnav-brand" target="_blank" rel="noopener">
+    Dory Ellis Garfinkle
+    <span class="topnav-back">← dory.rocks</span>
+  </a>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="et-clock" id="etClock" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--lime);letter-spacing:1px;"></div>
+    <div class="status-row">
+      <span class="status-dot loading" id="statusDot"></span>
+      <span id="statusText">Loading…</span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">Book time with</div>
+    <div class="hero-name">Dory Ellis <em>Garfinkle</em></div>
+    <div class="hero-tags">
+      <span class="hero-tag">New York City</span>
+      <span class="hero-tag">Eastern Time</span>
+      <span class="hero-tag">Google Meet included</span>
+    </div>
+  </div>
+  <div class="hero-tagline">The right time, with the right person.</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="section-label">Duration</div>
+      <div class="dur-grid">
+        <button class="dur-btn active" data-min="30" onclick="setDur(this)">30 min</button>
+        <button class="dur-btn" data-min="60" onclick="setDur(this)">1 hour</button>
+        <button class="dur-btn" data-min="45" onclick="setDur(this)">45 min</button>
+        <button class="dur-btn" data-min="90" onclick="setDur(this)">90 min</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-label">Details</div>
+      <div class="detail-list">
+        <div class="detail-item"><div class="detail-icon">⏱</div><span id="detailDur">30 minutes</span></div>
+        <div class="detail-item"><div class="detail-icon">🌍</div><span>Eastern Time (ET)</span></div>
+        <div class="detail-item"><div class="detail-icon">📅</div><span>Weekdays, 10 am – 5 pm ET</span></div>
+        <div class="detail-item"><div class="detail-icon">✓</div><span style="color:var(--muted);font-size:11px">Dory will confirm availability</span></div>
+        <div class="detail-item"><div class="detail-icon">📹</div><span>Google Meet included</span></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-label">Quick Availability</div>
+      <button class="quick-btn" onclick="findQuick()">↯ Find open times</button>
+      <div class="quick-results" id="quickResults">
+        <div id="quickList"></div>
+      </div>
+      <div class="copied-flash" id="copiedFlash">✓ Copied!</div>
+    </div>
+
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="cal-panel">
+
+    <div class="cal-controls" id="calControls">
+      <button class="cal-nav" onclick="prevMonth()">‹</button>
+      <div class="month-label" id="monthLabel">—</div>
+      <button class="cal-nav" onclick="nextMonth()">›</button>
+    </div>
+
+    <div id="monthView">
+      <div class="month-grid" id="monthGrid"></div>
+    </div>
+
+    <div class="time-panel" id="timePanel">
+      <div class="time-hd">
+        <button class="cal-nav" onclick="backToCal()">‹</button>
+        <div class="time-hd-text">
+          <div class="time-hd-eyebrow">Select a time</div>
+          <div class="time-hd-date" id="timePanelDate">—</div>
+        </div>
+      </div>
+      <div class="time-slots" id="timeSlots"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOOKING OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="booking-card" id="bookingCard">
+    <div class="card-hd">
+      <div class="card-eyebrow">Confirm your booking</div>
+      <div class="card-time" id="cardTime">—</div>
+    </div>
+    <div class="card-body">
+      <div class="form-field">
+        <label class="form-lbl">Your name</label>
+        <input class="form-inp" id="gName" type="text" placeholder="Full name">
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Email</label>
+        <input class="form-inp" id="gEmail" type="email" placeholder="you@example.com">
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Topic <span style="color:var(--faint);font-size:9px">(optional)</span></label>
+        <input class="form-inp" id="gTopic" type="text" placeholder="What's this about?">
+      </div>
+      <div class="booking-btns">
+        <button class="btn-confirm" onclick="confirmBooking()">Confirm booking</button>
+        <button class="btn-cancel" onclick="closeOverlay()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MONS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAYS_S = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WS = 10, WE = 17;
+
+let busySlots = {}, alldayBusy = {}, calLoaded = false;
+let selDuration = 30, selDate = null, selTime = null;
+let viewY, viewM;
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+function fdt(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function parseET(s){ const[dp,tp]=s.split('T');const[y,m,d]=dp.split('-').map(Number);const[h,mn]=(tp||'00:00').split(':').map(Number);return new Date(y,m-1,d,h,mn,0,0); }
+function fmt(h){ return h===0?'12am':h===12?'12pm':h>12?`${h-12}pm`:`${h}am`; }
+function setStatus(s,msg){ document.getElementById('statusDot').className='status-dot'+(s==='loading'?' loading':s==='error'?' error':'');document.getElementById('statusText').textContent=msg; }
+
+function slotFree(ds, hr){
+  if(alldayBusy[ds]) return false;
+  const blocks = Math.ceil(selDuration/60);
+  for(let i=0;i<blocks;i++){ if(busySlots[`${ds}_${hr+i}`]||hr+i>=WE) return false; }
+  return true;
+}
+
+function setDur(btn){
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selDuration = +btn.dataset.min;
+  const label = selDuration >= 60 ? `${selDuration/60} hour${selDuration>60?'s':''}` : `${selDuration} minutes`;
+  document.getElementById('detailDur').textContent = label;
+  if(selDate) renderSlots(selDate);
+}
+
+// ── Load calendars ────────────────────────────────────────────────────
+// Public booking page: show all business-hours slots as available.
+// Dory's calendar is checked via the availability app; this page
+// opens a Google Calendar invite which Dory can decline if needed.
+async function loadCals(){
+  setStatus('loading','Loading…');
+  try {
+    // Try to fetch busy times via the Anthropic API if a key is available
+    const apiKey = localStorage.getItem('anthropic_api_key');
+    if (apiKey) {
+      await loadCalsFromAPI(apiKey);
+      return;
+    }
+  } catch(err) {
+    console.warn('API load failed, showing open availability:', err);
+  }
+  // Fallback: mark all weekday business-hours slots as open
+  calLoaded = true;
+  setStatus('ok', 'Showing open availability');
+  renderMonth();
+}
+
+async function loadCalsFromAPI(apiKey) {
+  const s = new Date(TODAY); s.setDate(s.getDate()-3);
+  const e = new Date(TODAY); e.setDate(e.getDate()+60);
+  const tMin = fdt(s)+'T00:00:00', tMax = fdt(e)+'T23:59:59';
+
+  const prompt = `Fetch events from these Google Calendars for ${tMin} to ${tMax} (America/New_York):
+- primary: dory.ellis@gmail.com
+- dm: michaelsgarfinkle@gmail.com
+- ec: crk94q56n8o7fkj12h8880valiieinss@import.calendar.google.com
+- holiday: en.usa#holiday@group.v.calendar.google.com
+- family: family03093285931532505689@group.calendar.google.com
+- work: cdiog0aatmbjq9l3tkefnif53a3h5dno@import.calendar.google.com
+Call gcal_list_events for each with maxResults=250 timeZone=America/New_York.
+Return ONLY this JSON (no markdown):
+{"timed":[{"s":"YYYY-MM-DDTHH:MM","e":"YYYY-MM-DDTHH:MM"}],"allday":[{"start":"YYYY-MM-DD","end":"YYYY-MM-DD"}]}
+Rules: ET local times only; skip work events named Free or with transparency=transparent.`;
+
+  let msgs=[{role:'user',content:prompt}], raw='', turns=0;
+  while(turns++<20){
+    setStatus('loading',`Loading… (${turns})`);
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key': apiKey,'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:8000,
+        mcp_servers:[{type:'url',url:'https://gcal.mcp.claude.com/mcp',name:'gcal'}],messages:msgs})
+    });
+    if(!r.ok) {
+      const errText = await r.text();
+      throw new Error(`API ${r.status}: ${errText.slice(0,120)}`);
+    }
+    const d = await r.json();
+    for(const b of(d.content||[])) if(b.type==='text') raw+=b.text;
+    if(d.stop_reason==='end_turn') break;
+    const tools=(d.content||[]).filter(b=>b.type==='tool_use'||b.type==='mcp_tool_use');
+    if(!tools.length) break;
+    msgs.push({role:'assistant',content:d.content});
+    const res=tools.filter(b=>b.type==='tool_use').map(b=>({type:'tool_result',tool_use_id:b.id,content:''}));
+    if(res.length) msgs.push({role:'user',content:res}); else break;
+  }
+  const m = raw.replace(/```json|```/g,'').match(/\{[\s\S]*\}/);
+  if(!m) throw new Error(`No JSON in response: ${raw.slice(0,200)}`);
+  const p = JSON.parse(m[0]);
+  for(const ev of(p.timed||[])){
+    let c=parseET(ev.s); const e=parseET(ev.e);
+    while(c<e){ busySlots[`${fdt(c)}_${c.getHours()}`]=true; c.setHours(c.getHours()+1); }
+  }
+  for(const ad of(p.allday||[])){
+    let c=new Date(ad.start+'T00:00:00'); const e=new Date(ad.end+'T00:00:00');
+    while(c<e){ alldayBusy[fdt(c)]=true; c.setDate(c.getDate()+1); }
+  }
+  calLoaded=true;
+  setStatus('ok',`Updated ${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})} ET`);
+  renderMonth();
+  if(selDate) renderSlots(selDate);
+}
+
+// ── Month ─────────────────────────────────────────────────────────────
+function initView(){ viewY=TODAY.getFullYear(); viewM=TODAY.getMonth(); }
+function prevMonth(){ viewM--; if(viewM<0){viewM=11;viewY--;} renderMonth(); }
+function nextMonth(){ viewM++; if(viewM>11){viewM=0;viewY++;} renderMonth(); }
+
+function renderMonth(){
+  document.getElementById('monthLabel').innerHTML = `${MONS[viewM]} <em>${viewY}</em>`;
+  const first = new Date(viewY,viewM,1).getDay();
+  const days  = new Date(viewY,viewM+1,0).getDate();
+  let h='';
+  ['S','M','T','W','T','F','S'].forEach(d=>{ h+=`<div class="dow-lbl">${d}</div>`; });
+  for(let i=0;i<first;i++) h+=`<div class="day-cell"></div>`;
+  for(let day=1;day<=days;day++){
+    const d=new Date(viewY,viewM,day), ds=fdt(d);
+    const isToday=fdt(d)===fdt(TODAY), isPast=d<TODAY, isWknd=d.getDay()===0||d.getDay()===6, isAD=alldayBusy[ds];
+    let free=false;
+    if(!isPast&&!isWknd&&!isAD) for(let hr=WS;hr<WE&&!free;hr++) if(slotFree(ds,hr)) free=true;
+    const isSel=selDate===ds;
+    const cls=['day-cell',
+      free?'available':'',
+      isSel?'selected':'',
+      isToday&&!isSel?'today-ring':''
+    ].filter(Boolean).join(' ');
+    const oc=free?`onclick="pickDay('${ds}')"`:' ';
+    h+=`<div class="${cls}" ${oc}>${day}${isToday?'<span class="today-dot"></span>':''}</div>`;
+  }
+  document.getElementById('monthGrid').innerHTML=h;
+}
+
+function pickDay(ds){
+  selDate=ds; selTime=null;
+  renderMonth();
+  renderSlots(ds);
+  document.getElementById('monthView').style.display='none';
+  document.getElementById('calControls').style.display='none';
+  document.getElementById('timePanel').classList.add('show');
+}
+
+function backToCal(){
+  selDate=null; selTime=null;
+  document.getElementById('timePanel').classList.remove('show');
+  document.getElementById('monthView').style.display='';
+  document.getElementById('calControls').style.display='';
+  renderMonth();
+}
+
+// ── Time slots ────────────────────────────────────────────────────────
+function renderSlots(ds){
+  const d=new Date(ds+'T12:00:00');
+  document.getElementById('timePanelDate').innerHTML=`${DAYS[d.getDay()]}, ${MONS[d.getMonth()]} <em>${d.getDate()}</em>`;
+  const el=document.getElementById('timeSlots');
+  if(!calLoaded){ let h=''; for(let i=0;i<8;i++) h+=`<div class="skel-day"></div>`; el.innerHTML=h; return; }
+  let h='';
+  for(let hr=WS;hr<WE;hr++){
+    const free=slotFree(ds,hr), isSel=selTime===hr;
+    h+=`<div class="time-slot${!free?' busy':''}${isSel?' selected':''}" ${free?`onclick="pickTime(${hr})"`:''}>${fmt(hr)}</div>`;
+  }
+  el.innerHTML=h;
+}
+
+function pickTime(hr){
+  selTime=hr;
+  renderSlots(selDate);
+  setTimeout(openOverlay, 120);
+}
+
+// ── Booking overlay ───────────────────────────────────────────────────
+function openOverlay(){
+  if(!selDate||selTime===null) return;
+  const d=new Date(selDate+'T12:00:00');
+  const endH=selTime+Math.floor(selDuration/60), endM=selDuration%60;
+  const endStr=endM?`${fmt(selTime)} – ${endH>12?endH-12:endH}:${String(endM).padStart(2,'0')}${endH>=12?'pm':'am'}`:`${fmt(selTime)} – ${fmt(endH)}`;
+  document.getElementById('cardTime').innerHTML=`${DAYS[d.getDay()]}, ${MONS_S[d.getMonth()]} ${d.getDate()} · <em>${endStr} ET</em>`;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeOverlay(){ document.getElementById('overlay').classList.remove('show'); }
+
+function confirmBooking(){
+  const name=document.getElementById('gName').value.trim();
+  const email=document.getElementById('gEmail').value.trim();
+  if(!name||!email){ document.getElementById('gName').style.borderColor=!name?'var(--red)':''; document.getElementById('gEmail').style.borderColor=!email?'var(--red)':''; return; }
+  const topic=document.getElementById('gTopic').value.trim();
+  const d=new Date(selDate+'T00:00:00');
+  const sdt=new Date(d); sdt.setHours(selTime,0,0,0);
+  const edt=new Date(sdt); edt.setMinutes(edt.getMinutes()+selDuration);
+  const pad=n=>String(n).padStart(2,'0');
+  const gfmt=dt=>`${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
+  const title=topic?`${topic} (w/ ${name})`:`Meeting with ${name}`;
+  const url=`https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(title)}&dates=${gfmt(sdt)}/${gfmt(edt)}&add=${encodeURIComponent(email)}&details=${encodeURIComponent('Google Meet link will be created automatically.')}`;
+  window.open(url,'_blank');
+  document.getElementById('bookingCard').innerHTML=`
+    <div class="success-inner">
+      <div class="success-glyph">✦</div>
+      <div class="success-title">You're <em>all set.</em></div>
+      <div class="success-msg">A Google Calendar invite window has opened.<br>Click <strong>Save</strong> to confirm and create your Google Meet link.</div>
+      <button class="btn-confirm" style="margin-top:24px;max-width:180px" onclick="closeOverlay()">Done</button>
+    </div>`;
+}
+
+// ── Quick availability ────────────────────────────────────────────────
+function findQuick(){
+  const found=[];
+  const d=new Date(TODAY);
+  let days=0;
+  while(found.length<5&&days<45){
+    d.setDate(d.getDate()+1); days++;
+    if(d.getDay()===0||d.getDay()===6) continue;
+    const ds=fdt(d);
+    for(let hr=WS;hr<WE&&found.length<5;hr++){
+      if(slotFree(ds,hr)){
+        const day=new Date(ds+'T12:00:00');
+        found.push({label:`${DAYS_S[day.getDay()]} ${MONS_S[day.getMonth()]} ${day.getDate()}, ${fmt(hr)} ET`,ds,hr});
+        hr+=Math.ceil(selDuration/60);
+      }
+    }
+  }
+  const list=document.getElementById('quickList');
+  if(!found.length){ list.innerHTML=`<div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">No open times found in next 45 days.</div>`; }
+  else {
+    const allText=found.map(f=>`• ${f.label}`).join('\n');
+    list.innerHTML=found.map(f=>`<div class="quick-time-item"><span>${f.label}</span><button class="qcopy-btn" onclick="doCopy('${f.label}')">Copy</button></div>`).join('')
+      +`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><button class="qcopy-btn" style="width:100%" onclick="doCopy(${JSON.stringify(allText)})">Copy all</button></div>`;
+  }
+  document.getElementById('quickResults').classList.add('show');
+}
+function doCopy(t){ navigator.clipboard.writeText(t).then(()=>{ const f=document.getElementById('copiedFlash'); f.classList.add('show'); setTimeout(()=>f.classList.remove('show'),2200); }); }
+
+// ── Live ET clock ─────────────────────────────────────────────────────
+function tickClock(){
+  const now = new Date();
+  const et = now.toLocaleTimeString('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric', minute: '2-digit', second: '2-digit',
+    hour12: true
+  });
+  const etDate = new Date(now.toLocaleString('en-US', {timeZone:'America/New_York'}));
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  document.getElementById('etClock').textContent = `${days[etDate.getDay()]} ${et} ET`;
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// ── Init ──────────────────────────────────────────────────────────────
+initView();
+renderMonth();
+loadCals();
+</script>
+</body>
+</html>
