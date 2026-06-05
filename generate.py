@@ -213,7 +213,7 @@ def get_holidays(service, today, end_date):
 
 def render_html(busy, allday, holidays, today):
     today_str   = today.isoformat()
-    updated     = datetime.now().strftime("%B %-d, %Y at %-I:%M %p ET")
+    updated     = _utc = datetime.utcnow()     _et = _utc - timedelta(hours=4 if 3 <= _utc.month <= 10 else 5)     updated = _et.strftime("%B %-d, %Y at %-I:%M %p ET")("%B %-d, %Y at %-I:%M %p ET")
     busy_js     = json.dumps(busy,     separators=(",", ":"))
     allday_js   = json.dumps(allday,   separators=(",", ":"))
     holidays_js = json.dumps(holidays, separators=(",", ":"))
