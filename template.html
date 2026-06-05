@@ -670,9 +670,30 @@ async function doBook(){
   if(!name||!email){document.getElementById(name?'gemail':'gname').focus();return;}
   if(!selSlot)return;
   const btn=document.getElementById('book-btn');
-  btn.disabled=true;btn.textContent='Opening calendar…';
+  btn.disabled=true;btn.textContent='Confirming…';
+
   const slotDate=new Date(selSlot);
   const endDate=new Date(slotDate.getTime()+dur*60000);
+
+  // Fire webhook — creates event in Dory's Google Calendar immediately
+  try {
+    await fetch('https://script.google.com/macros/s/AKfycbzn1cWFmC7LdKN9_utAC95i5uUXi4m3i2MwiswvewD69HBLKI8fEWkNmcu_t7YyrfJg/exec', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        secret:'DEG_BOOKING_2026',
+        name, email, note,
+        start: slotDate.toISOString(),
+        end:   endDate.toISOString(),
+      }),
+      mode:'no-cors',
+    });
+  } catch(err) {
+    console.warn('Webhook failed:', err);
+  }
+
+  btn.textContent='Opening calendar…';
+
   function pad(n){return String(n).padStart(2,'0');}
   function toGCal(d){
     const utc=new Date(d.getTime()+(d.getTimezoneOffset()*60000));
@@ -682,6 +703,7 @@ async function doBook(){
   const desc=encodeURIComponent((note||'Booked via scheduling page')+'\n\nAttending: dory.ellis@gmail.com, '+email);
   const guests=encodeURIComponent('dory.ellis@gmail.com,'+email);
   window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${toGCal(slotDate)}/${toGCal(endDate)}&details=${desc}&add=${guests}&sf=true&output=xml`,'_blank');
+
   setTimeout(()=>{
     document.getElementById('form-panel').classList.remove('on');
     document.querySelector('.tabs').style.display='none';
