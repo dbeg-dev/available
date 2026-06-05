@@ -439,7 +439,7 @@ footer{
   <a class="nav-name" href="https://dory.rocks">DORY ELLIS GARFINKLE</a>
   <div class="nav-links">
     <a href="https://dory.rocks/#about">◈ About</a>
-    <a href="https://dory.rocks/#work">◉ Speaking &amp; Ideas</a>
+    <a href="https://dory.rocks/#work">◉ Speaking</a>
     <a href="https://dory.rocks/#music">♬ Rock 'n Roll</a>
     <a href="https://dory.rocks/#experience">▣ Experience</a>
     <a href="https://dory.rocks/#contact">◆ Contact</a>
@@ -469,7 +469,7 @@ footer{
       <div class="meta-item"><div class="meta-dot"></div>Google Meet included</div>
     </div>
 
-    <div class="updated">Auto-updated hourly<br>Last refresh: June 5, 2026 at 1:21 AM ET</div>
+    <div class="updated">Auto-updated hourly<br>Last refresh: June 4, 2026 at 10:14 PM ET</div>
   </div>
 
   <!-- RIGHT -->
@@ -548,8 +548,7 @@ const BUSY = [{"s":"2026-06-05T00:00","e":"2026-06-07T23:59"},{"s":"2026-06-09T1
 const ALLDAY_BLOCKED = ["2026-06-05","2026-06-06","2026-06-07","2026-06-15","2026-06-19","2026-07-20","2026-08-14","2026-08-15","2026-08-16","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-22","2026-08-24","2026-08-26","2026-08-27","2026-08-28"];
 const HOLIDAYS = {"2026-06-14":"Flag Day","2026-06-19":"Juneteenth","2026-06-21":"Father's Day","2026-07-03":"Independence Day (substitute)","2026-07-04":"Independence Day","2026-09-07":"Labor Day","2026-10-12":"Columbus Day"};
 const TODAY_STR = '2026-06-05';
-// Pin TODAY to ET midnight (UTC-4 in June)
-const TODAY = new Date(TODAY_STR+'T04:00:00Z');
+const TODAY = new Date(TODAY_STR+'T00:00:00');
 const EARLIEST=10,LATEST=17;
 const MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -568,59 +567,25 @@ function setDur(d){
   if(document.getElementById('qc-result').classList.contains('on'))qcRegen();
 }
 
-function parseETStr(str){
-  // Parse "YYYY-MM-DDTHH:MM" as ET wall-clock time → UTC Date
-  const [datePart, timePart] = str.split('T');
-  const [hh, mm] = timePart ? timePart.split(':').map(Number) : [0, 0];
-  return etToUTC(datePart, hh, mm);
-}
-function isBusy(s,e){for(const b of BUSY){const bs=parseETStr(b.s),be=parseETStr(b.e);if(s<be&&e>bs)return true;}return false;}
+function isBusy(s,e){for(const b of BUSY){const bs=new Date(b.s),be=new Date(b.e);if(s<be&&e>bs)return true;}return false;}
 
-// Parse an ET datetime string as a UTC Date, regardless of browser timezone.
-// ET = UTC-4 (DST Apr-Oct) or UTC-5 (standard Nov-Mar).
-function etToUTC(ds, hh, mm){
-  const month = parseInt(ds.split('-')[1]);
-  const isDST = month > 3 && month < 11;
-  const etOffsetMs = isDST ? 4*3600000 : 5*3600000;
-  const naive = new Date(ds + 'T' + String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0') + ':00Z');
-  return new Date(naive.getTime() + etOffsetMs);
-}
-function etHour(d){
-  // Get the wall-clock hour in ET for a UTC Date
-  const month = d.getUTCMonth() + 1;
-  const isDST = month > 3 && month < 11;
-  const etOffsetMs = isDST ? 4*3600000 : 5*3600000;
-  const etMs = d.getTime() - etOffsetMs;
-  return new Date(etMs).getUTCHours();
-}
-function etMinute(d){
-  const month = d.getUTCMonth() + 1;
-  const isDST = month > 3 && month < 11;
-  const etOffsetMs = isDST ? 4*3600000 : 5*3600000;
-  const etMs = d.getTime() - etOffsetMs;
-  return new Date(etMs).getUTCMinutes();
-}
 function getSlots(ds){
   if(ALLDAY_BLOCKED.includes(ds))return[];
-  const dayCheck=new Date(ds+'T12:00:00Z');
-  if(dayCheck.getDay()===0||dayCheck.getDay()===6)return[];
+  const d=new Date(ds+'T00:00:00');
+  if(d.getDay()===0||d.getDay()===6)return[];
   const slots=[];let h=EARLIEST,m=0;
   while(true){
-    const s=etToUTC(ds,h,m);
+    const s=new Date(ds+'T'+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':00');
     const e=new Date(s.getTime()+dur*60000);
-    const eH=etHour(e),eM=etMinute(e);
-    if(eH>LATEST||(eH===LATEST&&eM>0))break;
-    if(s>=TODAY&&!isBusy(s,e))slots.push(s);
+    if(e.getHours()>LATEST||(e.getHours()===LATEST&&e.getMinutes()>0))break;
+    if(s>=TODAY&&!isBusy(s,e))slots.push(new Date(s));
     m+=30;if(m>=60){h++;m=0;}
   }
   return slots;
 }
 function hasSlots(ds){return getSlots(ds).length>0;}
 function fmtDs(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
-function fmt(d){
-  const h=etHour(d)%12||12,m=etMinute(d),ap=etHour(d)>=12?'pm':'am';
-  return m===0?`${h}${ap}`:`${h}:${String(m).padStart(2,'0')}${ap}`;
-}
+function fmt(d){const h=d.getHours()%12||12,m=d.getMinutes(),ap=d.getHours()>=12?'pm':'am';return m===0?`${h}${ap}`:`${h}:${String(m).padStart(2,'0')}${ap}`;}
 
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',i===(t==='book'?0:1)));
@@ -643,7 +608,7 @@ function renderCal(){
   for(let i=0;i<first;i++)html+=`<div class="day-cell empty"></div>`;
   for(let d=1;d<=dim;d++){
     const ds=fmtDs(viewYear,viewMonth,d);
-    const dt=new Date(ds+'T12:00:00Z');
+    const dt=new Date(ds+'T00:00:00');
     const isPast=dt<TODAY,isWknd=dt.getDay()===0||dt.getDay()===6;
     const isToday=ds===TODAY_STR,isSel=ds===selDate;
     const avail=!isPast&&!isWknd&&hasSlots(ds);
@@ -663,7 +628,7 @@ function selDay(ds){selDate=ds;selSlot=null;renderCal();renderSlots(ds);}
 
 function renderSlots(ds){
   const slots=getSlots(ds);
-  const dt=new Date(ds+'T12:00:00Z'); // UTC noon, day-of-week is always correct
+  const dt=new Date(ds+'T12:00:00');
   const wrap=document.getElementById('slots-wrap');
   const hday=HOLIDAYS[ds];
   const dateLabel=`${DAYS_L[dt.getDay()]}, ${MONS_S[dt.getMonth()]} ${dt.getDate()}`;
@@ -710,8 +675,8 @@ async function doBook(){
   const endDate=new Date(slotDate.getTime()+dur*60000);
   function pad(n){return String(n).padStart(2,'0');}
   function toGCal(d){
-    // slots are now real UTC Dates — just format directly
-    return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+'T'+pad(d.getUTCHours())+pad(d.getUTCMinutes())+'00Z';
+    const utc=new Date(d.getTime()+(d.getTimezoneOffset()*60000));
+    return utc.getFullYear()+pad(utc.getMonth()+1)+pad(utc.getDate())+'T'+pad(utc.getHours())+pad(utc.getMinutes())+'00Z';
   }
   const title=encodeURIComponent('Meeting with Dory Ellis Garfinkle');
   const desc=encodeURIComponent((note||'Booked via scheduling page')+'\n\nAttending: dory.ellis@gmail.com, '+email);
@@ -780,8 +745,7 @@ function collectSlots(startD,endD,n=4,offset=0){
   const all=[];const d=new Date(startD);
   while(d<=endD){
     const ds=fmtDs(d.getFullYear(),d.getMonth(),d.getDate());
-    const dayOfWeek=new Date(ds+'T12:00:00Z').getDay();
-    if(dayOfWeek!==0&&dayOfWeek!==6&&!ALLDAY_BLOCKED.includes(ds)){
+    if(d.getDay()!==0&&d.getDay()!==6&&!ALLDAY_BLOCKED.includes(ds)){
       const slots=getSlots(ds);
       const morn=slots.filter(s=>s.getHours()<12);
       const mid=slots.filter(s=>s.getHours()>=12&&s.getHours()<14);
@@ -813,7 +777,7 @@ function qcRender(){
   timesEl.innerHTML=slots.map(slot=>{
     const e=new Date(slot.getTime()+dur*60000);
     const ds=fmtDs(slot.getFullYear(),slot.getMonth(),slot.getDate());
-    const dt=new Date(ds+'T12:00:00Z'); // UTC noon, day-of-week is always correct
+    const dt=new Date(ds+'T12:00:00');
     return `• <strong>${DAYS_L[dt.getDay()]}, ${MONS_S[dt.getMonth()]} ${dt.getDate()}</strong> — ${fmt(slot)}–${fmt(e)} ET`;
   }).join('\n');
 }
