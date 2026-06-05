@@ -53,6 +53,4 @@ jobs:
           git add index.html busy_data.json
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "Auto-refresh: $(date -u "+%Y-%m-%d %H:%M UTC")"
-          git fetch origin main
-          git rebase origin/main
-          git push
+          git push --force-with-lease origin HEAD:main
