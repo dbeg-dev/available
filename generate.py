@@ -11,6 +11,10 @@ Fetches events from all calendars and applies smart filtering:
 
 import os, json, re, sys
 from datetime import datetime, timedelta, date
+from zoneinfo import ZoneInfo
+
+ET = ZoneInfo("America/New_York")
+LONG_EVENT = timedelta(hours=12)  # timed events this long are treated like all-day events
 
 def get_gcal_service():
     from google.oauth2.credentials import Credentials
@@ -181,6 +185,20 @@ def build_busy_and_allday(service, today, end_date):
                 s = parse_et(start_info["dateTime"])
                 e = parse_et(end_info["dateTime"])
 
+                # Multi-day timed events (save-the-dates, pop-ups, trips entered
+                # with times) go through the all-day rules instead of blocking
+                # every hour between start and end.
+                if e - s >= LONG_EVENT:
+                    if should_skip_allday(summary):
+                        print(f"    SKIP long timed: {s:%Y-%m-%d}→{e:%Y-%m-%d} [{summary}]")
+                        continue
+                    d = s.date()
+                    while d <= e.date():
+                        allday.add(d.isoformat())
+                        d += timedelta(days=1)
+                    print(f"    BLOCK long timed as all-day: {s:%Y-%m-%d}→{e:%Y-%m-%d} [{summary}]")
+                    continue
+
                 # Chief/Flatiron travel buffer
                 loc = (ev.get("location") or "").lower()
                 if any(k in loc for k in CHIEF_KEYWORDS):
@@ -213,9 +231,7 @@ def get_holidays(service, today, end_date):
 
 def render_html(busy, allday, holidays, today):
     today_str   = today.isoformat()
-    _utc = datetime.utcnow()
-    _et = _utc - timedelta(hours=4 if 3 <= _utc.month <= 10 else 5)
-    updated = _et.strftime("%B %-d, %Y at %-I:%M %p ET")
+    updated = datetime.now(ET).strftime("%B %-d, %Y at %-I:%M %p ET")
     busy_js     = json.dumps(busy,     separators=(",", ":"))
     allday_js   = json.dumps(allday,   separators=(",", ":"))
     holidays_js = json.dumps(holidays, separators=(",", ":"))
@@ -242,7 +258,7 @@ def render_html(busy, allday, holidays, today):
 if __name__ == "__main__":
     print("Connecting to Google Calendar...")
     service  = get_gcal_service()
-    today    = date.today()
+    today    = datetime.now(ET).date()  # runner is UTC; use NYC's date
     end_date = today + timedelta(days=DAYS_AHEAD)
     print(f"Window: {today} → {end_date}")
 
@@ -257,28 +273,22 @@ if __name__ == "__main__":
     holidays = get_holidays(service, today, end_date)
     print(f"  {len(holidays)} holidays")
 
-    # Fallback: if fetch is thin, merge with cached data for future months
-    try:
-        if os.path.exists("busy_data.json"):
+    # Fresh fetch is the source of truth. The cache is only a safety net
+    # for a failed fetch, so deleted or freed events never get stuck.
+    if len(busy) == 0 and os.path.exists("busy_data.json"):
+        try:
             with open("busy_data.json") as cf:
                 cached = json.load(cf)
-            cached_busy   = cached.get("busy", [])
-            cached_allday = cached.get("allday", [])
-            # Always merge: fresh fetch covers near term, cached covers any manually-added blocks
-            print(f"  ↩ Merging fresh ({len(busy)}) with cached ({len(cached_busy)}) blocks")
-            cutoff = (today + timedelta(days=14)).isoformat()
-            fresh      = [b for b in busy        if b["s"][:10] <= cutoff]
-            old_cached = [b for b in cached_busy if b["s"][:10] >  cutoff]
-            # Also keep any manually-added near-term cached blocks not in the fresh fetch
-            fresh_dates = {b["s"][:10] for b in fresh}
-            extra_cached = [b for b in cached_busy if b["s"][:10] <= cutoff and b["s"][:10] not in fresh_dates]
-            busy   = fresh + extra_cached + old_cached
-            fresh_allday  = {d for d in allday        if d <= cutoff}
-            old_allday    = {d for d in cached_allday if d >  cutoff}
-            allday = sorted(fresh_allday | old_allday)
-            print(f"  ✓ Merged: {len(busy)} busy, {len(allday)} allday")
-    except Exception as ex:
-        print(f"  Warning: fallback merge failed: {ex}")
+            busy   = cached.get("busy", [])
+            allday = cached.get("allday", [])
+            print(f"  ↩ Fetch empty, using cached data ({len(busy)} blocks)")
+        except Exception as ex:
+            print(f"  Warning: cache read failed: {ex}")
+
+    # Drop anything that already ended
+    today_s = today.isoformat()
+    busy   = [b for b in busy if b["e"][:10] >= today_s]
+    allday = sorted(d for d in allday if d >= today_s)
 
     # Save best data
     with open("busy_data.json", "w") as f:
